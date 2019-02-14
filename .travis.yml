@@ -6,8 +6,10 @@ cache:
     - npm
     - yarn
 
-install:
+before_install:
     - npm install --global yarn
+
+install:
     - yarn global install --non-interactive --production false
 
 script: true
