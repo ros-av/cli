@@ -9,6 +9,9 @@ const storage = `${require('temp-dir')}\\rosav`
 // Prepare filesystem functions
 const fs = require('fs')
 
+// Prepare path joining procedures
+const path = require('path')
+
 // Prepare file requester
 const request = require('request')
 
@@ -22,13 +25,13 @@ if (!fs.existsSync(storage)) {
 }
 
 // If hashlist doesn't exist or is out of date
-if (!fs.existsSync(`${storage}\\hashlist.txt`) || request({
+if (!fs.existsSync(path.join(storage, "hashlist.txt"))) || request({
     url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
     method: 'GET',
     headers: { 'User-Agent': 'node.js' }
 }, (error, response, body) => {
     // Get download date of hashlist
-    let current = dayjs(fs.readFileSync(`${storage}\\lastmodified.txt`, 'utf8'))
+    let current = dayjs(fs.readFileSync(path.join(storage, "lastmodified.txt"), 'utf8'))
     // Get latest commit date of hashlist
     let now = dayjs(JSON.parse(body).commit.author.date, 'YYYY-MM-DDTHH:MM:SSZ')
     // Check if current is older than now
@@ -41,7 +44,7 @@ if (!fs.existsSync(`${storage}\\hashlist.txt`) || request({
         headers: { 'User-Agent': 'node.js' }
     }, (error, response, body) => {
         // Write the response to hashlist.txt
-        fs.writeFile(`${storage}\\hashlist.txt`, body, () => { })
+        fs.writeFile(path.join(storage, "hashlist.txt"), body, () => { })
     })
     request({
         url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
@@ -51,10 +54,13 @@ if (!fs.existsSync(`${storage}\\hashlist.txt`) || request({
         // Parse data
         let data = JSON.parse(body)
         // Write date to file
-        fs.writeFile(`${storage}\\lastmodified.txt`, data.commit.author.date, () => { })
+        fs.writeFile(path.join(storage, "lastmodified.txt"), data.commit.author.date, () => { })
     });
 }
 
 if(argv.hasOwnProperty('r')){
-    console.log("recursive")
+    console.log("Recursive Scanning")
+}
+if(argv.hasOwnProperty("n") {
+    console.log("No scanning, just download definitions")
 }
