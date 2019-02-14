@@ -17,5 +17,18 @@
     "minimist": "^1.2.0",
     "request": "^2.88.0",
     "temp-dir": "^1.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Richienb/rosav.git"
+  },
+  "keywords": [
+    "av",
+    "antivirus",
+    "viruslist"
+  ],
+  "bugs": {
+    "url": "https://github.com/Richienb/rosav/issues"
+  },
+  "homepage": "https://github.com/Richienb/rosav#readme"
 }
