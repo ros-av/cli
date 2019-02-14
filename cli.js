@@ -54,7 +54,7 @@ if (!fs.existsSync(`${storage}\\hashlist.txt`) || request({
         fs.writeFile(`${storage}\\lastmodified.txt`, data.commit.author.date, () => { })
     });
 }
-// // If hashlist exists
-// else {
-//
-// }
+
+if(argv.hasOwnProperty('r')){
+    console.log("recursive")
+}
