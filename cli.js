@@ -13,7 +13,7 @@ const fs = require('fs')
 const request = require('request')
 
 // Prepare time parser
-const { DateTime } = require('luxon');
+const dayjs = require('dayjs')
 
 // If storage directory doesn't exist
 if (!fs.existsSync(storage)) {
@@ -27,16 +27,12 @@ if (!fs.existsSync(`${storage}\\hashlist.txt`) || request({
     method: 'GET',
     headers: { 'User-Agent': 'node.js' }
 }, (error, response, body) => {
-    let filecontent
-    fs.readFile(`${storage}\\lastmodified.txt`, (err, data) => {
-        if (err) throw err;
-        filecontent = data
-        console.log(data)
-    })
-    let data = JSON.parse(body)
-    // console.log(filecontent)
-    // console.log(DateTime.fromFormat(filecontent, 'yyyy-mm-ddThh:mm:ssZ'))
-    return Date.parse(content) < Date.parse(data.commit.author.date)
+    // Get download date of hashlist
+    let current = dayjs(fs.readFileSync(`${storage}\\lastmodified.txt`, 'utf8'))
+    // Get latest commit date of hashlist
+    let now = dayjs(JSON.parse(body).commit.author.date, 'YYYY-MM-DDTHH:MM:SSZ')
+    // Check if current is older than now
+    return current < now
 })) {
     // Download hashlist
     request({
@@ -44,6 +40,7 @@ if (!fs.existsSync(`${storage}\\hashlist.txt`) || request({
         method: 'GET',
         headers: { 'User-Agent': 'node.js' }
     }, (error, response, body) => {
+        // Write the response to hashlist.txt
         fs.writeFile(`${storage}\\hashlist.txt`, body, () => { })
     })
     request({
@@ -51,7 +48,9 @@ if (!fs.existsSync(`${storage}\\hashlist.txt`) || request({
         method: 'GET',
         headers: { 'User-Agent': 'node.js' }
     }, (error, response, body) => {
+        // Parse data
         let data = JSON.parse(body)
+        // Write date to file
         fs.writeFile(`${storage}\\lastmodified.txt`, data.commit.author.date, () => { })
     });
 }

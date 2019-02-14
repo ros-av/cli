@@ -13,7 +13,7 @@
   "author": "Richie Bendall <richiebendall@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "luxon": "^1.11.2",
+    "dayjs": "^1.8.6",
     "minimist": "^1.2.0",
     "request": "^2.88.0",
     "temp-dir": "^1.0.0"
