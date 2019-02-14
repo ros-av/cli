@@ -25,7 +25,7 @@ if (!fs.existsSync(storage)) {
 }
 
 // If hashlist doesn't exist or is out of date
-if (!fs.existsSync(path.join(storage, "hashlist.txt"))) || request({
+if (!fs.existsSync(path.join(storage, "hashlist.txt")) || request({
     url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
     method: 'GET',
     headers: { 'User-Agent': 'node.js' }
