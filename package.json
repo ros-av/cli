@@ -1,0 +1,21 @@
+{
+  "name": "rosav",
+  "version": "1.0.0",
+  "main": "index.js",
+  "bin": {
+    "rosav": "cli.js"
+  },
+  "scripts": {
+    "main": "node main.js",
+    "cli": "node cli.js"
+  },
+  "repository": "https://github.com/Richienb/rosav.git",
+  "author": "Richie Bendall <richiebendall@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "luxon": "^1.11.2",
+    "minimist": "^1.2.0",
+    "request": "^2.88.0",
+    "temp-dir": "^1.0.0"
+  }
+}

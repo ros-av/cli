@@ -1,0 +1,25 @@
+language:                 node_js
+
+node_js:                  node
+
+cache:
+    - npm
+    - yarn
+
+install:
+    - npm install --global yarn
+    - yarn global install --non-interactive --production false
+
+script: true
+
+before_deploy:
+    - if [ -n "$TRAVIS_TAG" ]; then npm version $TRAVIS_TAG; fi
+
+deploy:
+    - provider:           npm
+      email:              richiebendall@gmail.com
+      skip_cleanup:       true
+      api_key:            $npm_token
+      on:
+          tags:           true
+          repo:           Richienb/rosav
