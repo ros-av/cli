@@ -12,9 +12,8 @@ before_install:
 install:
     - yarn global install --non-interactive --production false
 
-script: true
-
-before_deploy:
+script:
+    - yarn build
     - if [ -n "$TRAVIS_TAG" ]; then npm version $TRAVIS_TAG; fi
 
 deploy:

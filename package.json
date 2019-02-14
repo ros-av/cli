@@ -7,20 +7,33 @@
   },
   "scripts": {
     "main": "node main.js",
-    "cli": "node cli.js"
+    "cli": "node cli.js",
+    "build": "pkg ."
   },
-  "repository": "https://github.com/Richienb/rosav.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Richienb/rosav.git"
+  },
   "author": "Richie Bendall <richiebendall@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "dayjs": "^1.8.6",
     "minimist": "^1.2.0",
+    "pkg": "^4.3.7",
     "request": "^2.88.0",
     "temp-dir": "^1.0.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Richienb/rosav.git"
+  "devDependencies": {
+    "pkg": "^4.3.7"
+  },
+  "pkg": {
+    "targets": [
+      "node10",
+      "linux",
+      "alpine",
+      "macos",
+      "win"
+    ]
   },
   "keywords": [
     "av",
