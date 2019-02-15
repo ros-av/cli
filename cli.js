@@ -52,46 +52,59 @@ if (args.update === "false") {
     console.log(c.yellow("Hash list updates disabled."))
 }
 
-// If hashlist doesn't exist or is out of date
-else if (!fs.existsSync(path.join(storage, "hashlist.txt"))) {
+// If hashlist doesn't exist
+else
+// if (!fs.existsSync(path.join(storage, "hashlist.txt")))
+{
+    let allowupdate
+    if (fs.existsSync(path.join(storage, "hashlist.txt")) && args.update !== "true") {
+        // Request the GitHub API rate limit
+        request({
+            url: 'https://api.github.com/rate_limit',
+            method: 'GET',
+            headers: {
+                'User-Agent': 'rosav (nodejs)'
+            }
+        }, (error, response, body) => {
+            // Parse the response as JSON
+            let data = JSON.parse(body)
 
-    let resp
-    request({
-        url: 'https://api.github.com/rate_limit',
-        method: 'GET',
-        headers: {
-            'User-Agent': 'rosav (nodejs)'
+            // Check the quota limit
+            if (data.resources.core.remaining === 0) {
+                console.log(c.yellow("Maximum quota limit reached on the GitHub api. Updates will not work unless forced until " + dayjs(data.resources.core.reset).$d))
+                allowupdate = false
+            }
+        })
+
+        if (!allowupdate) {
+            return;
         }
-    }, (error, response, body) => {
-        // Parse the response as JSON
-        let data = JSON.parse(body)
 
-        // Check for quota limit
-        if (data.resources.core.remaining === 0) {
-            console.log(c.yellow("Maximum quota limit reached on the GitHub api. Updates will not work unless forced until " + dayjs(data.resources.core.reset).$d))
-            resp = false
+        // Request the latest commit
+        request({
+            url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
+            method: 'GET',
+            headers: {
+                'User-Agent': 'rosav (nodejs)'
+            }
+        }, (error, response, body) => {
+
+            // Get download date of hashlist
+            let current = dayjs(fs.readFileSync(path.join(storage, "lastmodified.txt"), 'utf8'))
+
+            // Get latest commit date of hashlist
+            let now = dayjs(JSON.parse(body).commit.author.date, 'YYYY-MM-DDTHH:MM:SSZ')
+
+            // Check if current is older than now
+            allowupdate = current < now
+        })
+
+        if (!allowupdate) {
+            return;
         }
-    })
-    request({
-        url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
-        method: 'GET',
-        headers: {
-            'User-Agent': 'rosav (nodejs)'
-        }
-    }, (error, response, body) => {
 
-        // Get download date of hashlist
-        let current = dayjs(fs.readFileSync(path.join(storage, "lastmodified.txt"), 'utf8'))
-
-        // Get latest commit date of hashlist
-        let now = dayjs(JSON.parse(body).commit.author.date, 'YYYY-MM-DDTHH:MM:SSZ')
-
-        // Check if current is older than now
-        resp = current < now
-    })
-    if (args.update !== "true") {
-        return;
     }
+
     console.log(c.green("Updating hash list..."))
     // Download hashlist
     request({
