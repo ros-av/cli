@@ -1,5 +1,6 @@
 {
   "name": "rosav",
+  "description": "A CLI that scans your files for matches to the VirusShare database.",
   "version": "0.0.0",
   "main": "index.js",
   "bin": {
