@@ -131,7 +131,7 @@ else
     })
 
     console.log(c.green("Hash list updated."))
-} else {
+// } else {
     console.log(c.green("Hash list is up to date."))
 }
 
