@@ -60,7 +60,7 @@ else if (!fs.existsSync(path.join(storage, "hashlist.txt"))) {
         url: 'https://api.github.com/rate_limit',
         method: 'GET',
         headers: {
-            'User-Agent': 'node.js'
+            'User-Agent': 'rosav (nodejs)'
         }
     }, (error, response, body) => {
         // Parse the response as JSON
@@ -76,7 +76,7 @@ else if (!fs.existsSync(path.join(storage, "hashlist.txt"))) {
         url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
         method: 'GET',
         headers: {
-            'User-Agent': 'node.js'
+            'User-Agent': 'rosav (nodejs)'
         }
     }, (error, response, body) => {
 
@@ -98,7 +98,7 @@ else if (!fs.existsSync(path.join(storage, "hashlist.txt"))) {
         url: "https://raw.githubusercontent.com/Richienb/virusshare-hashes/master/virushashes.txt",
         method: 'GET',
         headers: {
-            'User-Agent': 'node.js'
+            'User-Agent': 'rosav (nodejs)'
         }
     }, (error, response, body) => {
         // Write the response to hashlist.txt
@@ -108,7 +108,7 @@ else if (!fs.existsSync(path.join(storage, "hashlist.txt"))) {
         url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
         method: 'GET',
         headers: {
-            'User-Agent': 'node.js'
+            'User-Agent': 'rosav (nodejs)'
         }
     }, (error, response, body) => {
         // Parse data
