@@ -3,3 +3,33 @@
 [![NPM](https://nodei.co/npm/rosav.png?mini=true)](https://nodei.co/npm/rosav)
 
 [![ROS AV](https://a.icons8.com/kTZddigl/FNiIO4/ros-av.svg)](#)
+
+A CLI that scans your files for matches to the VirusShare database.
+
+Documentation available [here](https://richienb.github.io/rosav).
+
+## Installation
+
+### Prebuilt binary
+
+Download [here](https://github.com/Richienb/rosav/releases/latest).
+
+### Package manager
+
+#### NPM
+
+```sh
+npm install -g rosav
+```
+
+#### Yarn
+
+```sh
+yarn global add rosav
+```
+
+## Command help
+
+```
+rosav --help
+```
