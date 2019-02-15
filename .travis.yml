@@ -15,7 +15,6 @@ install:
 script:
     - yarn build
     - if [ -n "$TRAVIS_TAG" ]; then npm version $TRAVIS_TAG; fi
-    - ls -1
 
 deploy:
     - provider:           npm
@@ -25,3 +24,12 @@ deploy:
       on:
           tags:           true
           repo:           Richienb/rosav
+
+    -   provider:         releases
+        api_key:          $github_token
+        file_glob:        true
+        file:             rosav-*
+        skip_cleanup:     true
+        on:
+            tags:           true
+            repo:           Richienb/rosav
