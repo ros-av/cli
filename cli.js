@@ -174,15 +174,18 @@ args._.forEach((i) => {
     } else if (fs.lstatSync(i).isDirectory()) {
         // If path is a directory
         if (args.recursive === 'true') {
-            glob(path.resolve(path.join(i, "/**/*")), (err, res) => {
-                res.forEach((file) => {
+            glob(path.resolve(path.join(i, "/**/*")), (err, files) => {
+                files.forEach((file) => {
+                    // If the MD5 hash is in the list
                     scan(path.resolve(i, file))
                 })
             })
         } else {
-            fs.readdirSync(path.resolve(i)).forEach(file => {
-                // If the MD5 hash is in the list
-                scan(path.resolve(i, file))
+            fs.readdir(path.resolve(i), (err, files) => {
+                files.forEach(file => {
+                    // If the MD5 hash is in the list
+                    scan(path.resolve(i, file))
+                })
             })
         }
 
