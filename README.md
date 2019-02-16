@@ -34,3 +34,10 @@ yarn global add rosav
 ```
 rosav --help
 ```
+
+### TODO
+
+- Catch all errors
+- Use asyncronous functions
+- Add a progress bar to display during scanning
+- Allow specifying custom regex to match directories
