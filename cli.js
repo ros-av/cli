@@ -3,7 +3,7 @@
 // Path joining procedures
 const path = require('path')
 
-// Glob finding
+// File matcher
 const glob = require("glob")
 
 // Get CLI arguments
@@ -25,7 +25,7 @@ const dayjs = require('dayjs')
 const md5File = require('md5-file')
 
 // Simplified console colours
-const c = require('chalk');
+const c = require('chalk')
 
 // Print ASCII text
 console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\n ${c.blue("|  __ \\ \/ __ \\ \/ ____|")}     ${c.red("\/\\ \\    \/ \/")}\r\n ${c.blue("| |__) | |  | | (___")}      ${c.red("\/  \\ \\  \/ \/ ")}\r\n ${c.blue("|  _  \/| |  | |\\___ \\")}    ${c.red("\/ \/\\ \\ \\\/ \/")}  \r\n ${c.blue("| | \\ \\| |__| |____) |")}  ${c.red("\/ ____ \\  \/")}   \r\n ${c.blue("|_|  \\_\\\\____\/|_____\/")}  ${c.red("\/_\/    \\_\\\/")}    \n`)
@@ -33,7 +33,7 @@ console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\
 // If help executed
 if (args.help) {
     console.log(c.cyan("rosav --update=true --scan=true --verbose=false --data=<temp dir> [folders or files]"))
-    process.exit(0);
+    process.exit(0)
 }
 
 // If storage directory doesn't exist
@@ -50,7 +50,7 @@ if (!fs.existsSync(storage)) {
 // If update is not disabled or hashlist doesn't exist
 if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt"))) {
     // Define updater
-    let update = () => {
+    const update = () => {
         console.log(c.green("Updating hash list..."))
         // Download hashlist
         request({
@@ -106,7 +106,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
 
             // If API quota remaining
             if (quotaremaining) {
-                return;
+                return
             }
 
             let outdated
@@ -144,16 +144,27 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
 // If scanning disabled
 if (args.scan === 'false') {
     console.log(c.red("Scanning disabled."))
-    process.exit(0);
+    process.exit(0)
 }
 
 // If no paths specified
-if (args._ === []) {
+if (!args._[0]) {
+
     // Set to current directory
     args._ = [__dirname]
 }
 
 const hashes = fs.readFileSync(path.join(storage, "hashlist.txt"), 'utf8').split("\n")
+
+const scan = (file) => {
+    if (!(fs.lstatSync(file).isDirectory()) && hashes.includes(md5File.sync(file))) {
+        console.log(c.red(`${file} is dangerous!`))
+    } else
+        // If verbose is enabled
+        if (args.verbose === 'true' && (!(fs.lstatSync(file).isDirectory()))) {
+            console.log(c.green(`${file} is safe.`))
+        }
+}
 
 // For each path
 args._.forEach((i) => {
@@ -163,28 +174,16 @@ args._.forEach((i) => {
     } else if (fs.lstatSync(i).isDirectory()) {
         // If path is a directory
         if (args.recursive === 'true') {
-            glob(path.resolve(path.join(i, '/**/*')), (err, res) => {
+            glob(path.resolve(path.join(i, "/**/*")), (err, res) => {
                 res.forEach((file) => {
-                    if (!(fs.lstatSync(file).isDirectory()) && hashes.includes(md5File.sync(file))) {
-                        console.log(c.red(`${file} is dangerous!`))
-                    } else
-                        // If verbose is enabled
-                        if (args.verbose === 'true' && (!(fs.lstatSync(file).isDirectory()))) {
-                            console.log(c.green(`${file} is safe.`))
-                        }
+                    scan(path.resolve(i, file))
                 })
-            });
+            })
         } else {
-            fs.readdirSync(i).forEach(file => {
+            fs.readdirSync(path.resolve(i)).forEach(file => {
                 // If the MD5 hash is in the list
-                if (!(fs.lstatSync(path.resolve(i, file)).isDirectory()) && hashes.includes(md5File.sync(path.resolve(i, file)))) {
-                    console.log(c.red(`${file} is dangerous!`))
-                } else
-                    // If verbose is enabled
-                    if (args.verbose === 'true' && (!(fs.lstatSync(path.resolve(i, file)).isDirectory()))) {
-                        console.log(c.green(`${file} is safe.`))
-                    }
-            });
+                scan(path.resolve(i, file))
+            })
         }
 
     } else
