@@ -6,8 +6,7 @@
 
 A CLI that scans your files for matches to the VirusShare database.
 
-Documentation coming soon!
-<!-- Documentation available [here](https://richienb.github.io/rosav). -->
+Documentation available [here](https://richienb.github.io/rosav).
 
 ## Installation
 
