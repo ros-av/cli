@@ -39,4 +39,5 @@ rosav --help
 - Catch all errors
 - Use asynchronous functions
 - Add a progress bar to display during scanning
+- Migrate core functions of the CLI to `index.js`
 - Allow specifying custom regex to match directories
