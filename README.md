@@ -36,8 +36,8 @@ rosav --help
 
 ## TODO
 
-- Catch all errors
-- Use asynchronous functions
-- Add a progress bar to display during scanning
-- Migrate core functions of the CLI to `index.js`
-- Allow specifying custom regex to match directories
+- [ ] Catch all errors
+- [ ] Use asynchronous functions
+- [x] Add a progress bar to display during scanning
+- [ ] Migrate core functions of the CLI to `index.js`
+- [ ] Allow specifying custom regex to match directories

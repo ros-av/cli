@@ -12,9 +12,6 @@ const args = require('minimist')(process.argv.slice(2))
 // Set storage directory
 const storage = args.data ? args.data : path.join(require('temp-dir'), "rosav")
 
-// Filesystem functions
-const fs = require('fs')
-
 // External file requester
 const request = require('request')
 
@@ -27,12 +24,22 @@ const md5File = require('md5-file')
 // Simplified console colours
 const c = require('chalk')
 
+// Prevent file overloads and provide filesystem functions
+let realFs = require('fs')
+let gracefulFs = require('graceful-fs')
+gracefulFs.gracefulify(realFs)
+const fs = require('graceful-fs')
+
+// Progress bar
+const progressbar = require('cli-progress')
+const bar = new progressbar.Bar({}, progressbar.Presets.shades_classic)
+
 // Print ASCII text
 console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\n ${c.blue("|  __ \\ / __ \\ / ____|")}     ${c.red("/\\ \\    / /")}\r\n ${c.blue("| |__) | |  | | (___")}      ${c.red("/  \\ \\  / / ")}\r\n ${c.blue("|  _  /| |  | |\\___ \\")}    ${c.red("/ /\\ \\ / /")}  \r\n ${c.blue("| | \\ \\| |__| |____) |")}  ${c.red("/ ____ \\  /")}   \r\n ${c.blue("|_|  \\_\\\\____/|_____/")}  ${c.red("/_/    \\_/")}    \n`)
 
 // If help executed
 if (args.help) {
-    console.log(c.cyan("rosav --update=true --scan=true --verbose=false --data=<temp dir> [folders or files]"))
+    console.log(c.cyan("rosav --update=true --scan=true --verbose=false --progressbar=true --action=<nothing, remove> --data=<temp dir> [folders or files]"))
     process.exit(0)
 }
 
@@ -40,16 +47,20 @@ if (args.help) {
 if (!fs.existsSync(storage)) {
 
     // Create storage directory
-    fs.mkdirSync(storage)
+    fs.mkdirSync(storage, { recursive: true })
 
     console.log(c.green("Data directory created."))
 } else {
     console.log(c.green("Data directory found."))
 }
 
+if (args.verbose === "true") {
+    console.log(c.cyan("Storage directory is " + storage))
+}
+
 // Add an error handler
-function handleError(err) {
-    console.log(chalk.red("An error has occurred: " + err))
+const handleError = (err) => {
+    console.log(c.red("An error has occurred: " + err))
     process.exit(1)
 }
 
@@ -178,14 +189,56 @@ if (!args._[0]) {
 
 const hashes = fs.readFileSync(path.join(storage, "hashlist.txt"), 'utf8').split("\n")
 
-const scan = (file) => {
-    if (!(fs.lstatSync(file).isDirectory()) && hashes.includes(md5File.sync(file))) {
-        console.log(c.red(`${file} is dangerous!`))
-    } else
-        // If verbose is enabled
-        if (args.verbose === 'true' && (!(fs.lstatSync(file).isDirectory()))) {
-            console.log(c.green(`${file} is safe.`))
+let done = 0
+
+const updateProgressBar = () => {
+    if (args.progressbar !== "false") {
+        bar.increment(1)
+        done += 1
+        if (done >= bar.total) {
+            bar.stop()
         }
+    }
+}
+
+const scan = (path) => {
+    fs.lstat(path, (err, stats) => {
+        if (err) {
+            handleError(err)
+        }
+        // If path is not a directory
+        if (!stats.isDirectory()) {
+            md5File(path, (err, hash) => {
+                if (err) {
+                    handleError(err)
+                }
+                // If the hash is in the list
+                if (hashes.includes(hash)) {
+                    console.log(c.red(`${path} is dangerous!`))
+
+                    if (args.action === "remove") {
+                        fs.unlink(path, (err) => {
+                            if (err) {
+                                handleError(err)
+                            }
+                            if (args.verbose === "true") {
+                                console.log(c.yellow(`${path} successfully deleted.`))
+                            }
+                        });
+                    }
+
+                } else if (args.verbose === 'true') {
+                    // Otherwise, if verbose is enabled
+                    console.log(c.green(`${path} is safe.`))
+                }
+                updateProgressBar()
+            })
+        } else {
+            updateProgressBar()
+        }
+
+    })
+
 }
 
 // For each path
@@ -200,6 +253,11 @@ args._.forEach((i) => {
                 if (err) {
                     handleError(err)
                 }
+
+                if (args.progressbar !== "false") {
+                    bar.start(files.length, 0)
+                }
+
                 files.forEach((file) => {
                     // If the MD5 hash is in the list
                     scan(path.resolve(i, file))
@@ -210,6 +268,11 @@ args._.forEach((i) => {
                 if (err) {
                     handleError(err)
                 }
+
+                if (args.progressbar !== "false") {
+                    bar.start(files.length, 0)
+                }
+
                 files.forEach(file => {
                     // If the MD5 hash is in the list
                     scan(path.resolve(i, file))
@@ -219,14 +282,6 @@ args._.forEach((i) => {
 
     } else
         // If path is a file
-
-        // If the MD5 hash is in the list
-        if (hashes.includes(md5File.sync(path.resolve(__dirname, i)))) {
-            console.log(c.red(`${i} is dangerous!`))
-        } else
-            // If verbose is enabled
-            if (args.verbose === 'true') {
-                console.log(c.green(`${i} is safe.`))
-            }
+        scan(path.resolve(__dirname, i))
 
 })
