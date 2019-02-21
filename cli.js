@@ -82,7 +82,11 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
             }
 
             // Write the response to hashlist.txt
-            fs.writeFile(path.join(storage, "hashlist.txt"), body, () => { })
+            fs.writeFile(path.join(storage, "hashlist.txt"), body, (err) => {
+                if (err) {
+                    handleError(err)
+                }
+            })
         })
         request({
             url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
@@ -169,6 +173,9 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
                 console.log(c.green("Hash list is up to date."))
             }
         }
+    } else {
+        // If hashlist doesn't exist
+        update()
     }
 } else {
     console.log(c.yellow("Hash list updates disabled."))
