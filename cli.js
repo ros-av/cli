@@ -194,6 +194,7 @@ if (!args._[0]) {
     args._ = [__dirname]
 }
 
+console.log(c.green("Loading hashes..."))
 const hashes = fs.readFileSync(path.join(storage, "hashlist.txt"), 'utf8').split("\n")
 
 let done = 0
@@ -247,6 +248,8 @@ const scan = (path) => {
     })
 
 }
+
+console.log(c.green("Starting scan..."))
 
 // For each path
 args._.forEach((i) => {
