@@ -35,7 +35,7 @@ const progressbar = require('cli-progress')
 const bar = new progressbar.Bar({}, progressbar.Presets.shades_classic)
 
 // Print ASCII text
-console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\n ${c.blue("|  __ \\ / __ \\ / ____|")}     ${c.red("/\\ \\    / /")}\r\n ${c.blue("| |__) | |  | | (___")}      ${c.red("/  \\ \\  / / ")}\r\n ${c.blue("|  _  /| |  | |\\___ \\")}    ${c.red("/ /\\ \\ / /")}  \r\n ${c.blue("| | \\ \\| |__| |____) |")}  ${c.red("/ ____ \\  /")}   \r\n ${c.blue("|_|  \\_\\\\____/|_____/")}  ${c.red("/_/    \\_/")}    \n`)
+console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\n ${c.blue("|  __ \\ / __ \\ / ____|")}     ${c.red("/\\ \\    / /")}\r\n ${c.blue("| |__) | |  | | (___")}      ${c.red("/  \\ \\  / / ")}\r\n ${c.blue("|  _  /| |  | |\\___ \\")}    ${c.red("/ /\\ \\  / /")}  \r\n ${c.blue("| | \\ \\| |__| |____) |")}  ${c.red("/ ____ \\  /")}   \r\n ${c.blue("|_|  \\_\\\\____/|_____/")}  ${c.red("/_/    \\_/")}    \n`)
 
 // If help executed
 if (args.help) {
@@ -71,7 +71,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
         console.log(c.green("Updating hash list..."))
         // Download hashlist
         request({
-            url: "https://raw.githubusercontent.com/Richienb/virusshare-hashes/master/virushashes.txt",
+            url: "https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt",
             method: 'GET',
             headers: {
                 'User-Agent': 'rosav (nodejs)'
