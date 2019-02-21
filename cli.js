@@ -47,6 +47,12 @@ if (!fs.existsSync(storage)) {
     console.log(c.green("Data directory found."))
 }
 
+// Add an error handler
+function handleError(err) {
+    console.log(chalk.red("An error has occurred: " + err))
+    process.exit(1)
+}
+
 // If update is not disabled or hashlist doesn't exist
 if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt"))) {
     // Define updater
@@ -59,7 +65,11 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
             headers: {
                 'User-Agent': 'rosav (nodejs)'
             }
-        }, (error, response, body) => {
+        }, (err, _, body) => {
+            if (err) {
+                handleError(err)
+            }
+
             // Write the response to hashlist.txt
             fs.writeFile(path.join(storage, "hashlist.txt"), body, () => { })
         })
@@ -69,9 +79,14 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
             headers: {
                 'User-Agent': 'rosav (nodejs)'
             }
-        }, (error, response, body) => {
+        }, (err, _, body) => {
+            if (err) {
+                handleError(err)
+            }
+
             // Parse data
             let data = JSON.parse(body)
+
             // Write date to file
             fs.writeFile(path.join(storage, "lastmodified.txt"), data.commit.author.date, () => { })
         })
@@ -93,7 +108,11 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
                 headers: {
                     'User-Agent': 'rosav (nodejs)'
                 }
-            }, (error, response, body) => {
+            }, (err, _, body) => {
+                if (err) {
+                    handleError(err)
+                }
+
                 // Parse the response as JSON
                 let data = JSON.parse(body)
 
@@ -118,7 +137,10 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
                 headers: {
                     'User-Agent': 'rosav (nodejs)'
                 }
-            }, (error, response, body) => {
+            }, (err, _, body) => {
+                if (err) {
+                    handleError(err)
+                }
 
                 // Get download date of hashlist
                 let current = dayjs(fs.readFileSync(path.join(storage, "lastmodified.txt"), 'utf8'))
@@ -175,6 +197,9 @@ args._.forEach((i) => {
         // If path is a directory
         if (args.recursive === 'true') {
             glob(path.resolve(path.join(i, "/**/*")), (err, files) => {
+                if (err) {
+                    handleError(err)
+                }
                 files.forEach((file) => {
                     // If the MD5 hash is in the list
                     scan(path.resolve(i, file))
@@ -182,6 +207,9 @@ args._.forEach((i) => {
             })
         } else {
             fs.readdir(path.resolve(i), (err, files) => {
+                if (err) {
+                    handleError(err)
+                }
                 files.forEach(file => {
                     // If the MD5 hash is in the list
                     scan(path.resolve(i, file))
