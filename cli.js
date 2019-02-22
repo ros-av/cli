@@ -109,11 +109,8 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
         console.log(c.green("Hash list updated."))
     }
     // If hashlist exists
-    if (fs.existsSync(path.join(storage, "hashlist.txt"))) {
+    if (fs.existsSync(path.join(storage, "hashlist.txt")) && args.update !== "true") {
         // If updates are enabled
-        if (args.update === "true") {
-            update()
-        } else {
             let quotaremaining
 
             // Request the GitHub API rate limit
@@ -172,7 +169,6 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
             } else {
                 console.log(c.green("Hash list is up to date."))
             }
-        }
     } else {
         // If hashlist doesn't exist
         update()
