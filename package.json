@@ -27,6 +27,7 @@
     "minimist": "^1.2.0",
     "pkg": "^4.3.7",
     "request": "^2.88.0",
+    "request-progress": "^3.0.0",
     "temp-dir": "^1.0.0"
   },
   "devDependencies": {
