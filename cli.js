@@ -35,6 +35,10 @@ const fs = require('graceful-fs')
 const progressbar = require('cli-progress')
 const scanbar = new progressbar.Bar({}, progressbar.Presets.shades_classic)
 
+// Large file support
+const readline = require('readline');
+const stream = require('stream');
+
 // Print ASCII text
 console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\n ${c.blue("|  __ \\ / __ \\ / ____|")}     ${c.red("/\\ \\    / /")}\r\n ${c.blue("| |__) | |  | | (___")}      ${c.red("/  \\ \\  / / ")}\r\n ${c.blue("|  _  /| |  | |\\___ \\")}    ${c.red("/ /\\ \\  / /")}  \r\n ${c.blue("| | \\ \\| |__| |____) |")}  ${c.red("/ ____ \\  /")}   \r\n ${c.blue("|_|  \\_\\\\____/|_____/")}  ${c.red("/_/    \\_/")}    \n`)
 
@@ -65,25 +69,10 @@ const handleError = (err) => {
     process.exit(1)
 }
 
+// Hashes storage
+let hashes = []
+
 const startscan = () => {
-
-    // If scanning disabled
-    if (args.scan === 'false') {
-        console.log(c.red("Scanning disabled."))
-        process.exit(0)
-    }
-
-    // If no paths specified
-    if (!args._[0]) {
-
-        // Set to current directory
-        args._ = [__dirname]
-    }
-
-    console.log(c.green("Loading hashes..."))
-
-    const hashes = fs.readFileSync(path.join(storage, "hashlist.txt"), 'utf8').split("\n")
-
     let done = 0
 
     const updateProgressBar = () => {
@@ -92,6 +81,7 @@ const startscan = () => {
             done += 1
             if (done >= scanbar.total) {
                 scanbar.stop()
+                process.exit(0)
             }
         }
     }
@@ -182,6 +172,38 @@ const startscan = () => {
             scan(path.resolve(__dirname, i))
 
     })
+}
+
+const prepscan = () => {
+
+    // If scanning disabled
+    if (args.scan === 'false') {
+        console.log(c.red("Scanning disabled."))
+        process.exit(0)
+    }
+
+    // If no paths specified
+    if (!args._[0]) {
+
+        // Set to current directory
+        args._ = [__dirname]
+    }
+
+    console.log(c.green("Loading hashes..."))
+
+    let instream = fs.createReadStream(path.join(storage, "hashlist.txt"));
+    let outstream = new stream;
+    let rl = readline.createInterface(instream, outstream);
+    rl.on('line', function(line) {
+        hashes.push(line);
+    });
+
+    rl.on('close', function() {
+        console.log(c.green("Finished loading hashes."))
+    }
+    );
+
+    startscan()
 
 }
 
@@ -194,8 +216,8 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
         const dlbar = new progressbar.Bar({}, progressbar.Presets.shades_classic)
         rprog(request({
             url: "https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt",
-            method: 'GET',
             gzip: true,
+            method: 'GET',
             headers: {
                 'User-Agent': 'rosav (nodejs)'
             }
@@ -203,6 +225,8 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
             if (err) {
                 handleError(err)
             }
+
+            console.log(c.cyan("started"))
 
             // Write the response to hashlist.txt
             fs.writeFile(path.join(storage, "hashlist.txt"), body, (err) => {
@@ -212,31 +236,18 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
 
                 console.log(c.green("Hash list updated."))
 
-                startscan()
+                prepscan()
             })
         })).on('progress', (state) => {
-            // The state is an object that looks like this:
-            // {
-            //     percent: 0.5,               // Overall percent (between 0 to 1)
-            //     speed: 554732,              // The download speed in bytes/sec
-            //     size: {
-            //         total: 90044871,        // The total payload size in bytes
-            //         transferred: 27610959   // The transferred payload size in bytes
-            //     },
-            //     time: {
-            //         elapsed: 36.235,        // The total elapsed seconds since the start (3 decimals)
-            //         remaining: 81.403       // The remaining seconds to finish (3 decimals)
-            //     }
-            // }
-            dlbar.update((state.percent * 100).toFixed(2));
+            dlbar.start(state.size.total, state.size.transferred)
+        }).on('end', function() {
+            dlbar.stop()
         })
-            .on('end', function() {
-                dlbar.stop()
-            })
         request({
             url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
             method: 'GET',
             json: true,
+            gzip: true,
             headers: {
                 'User-Agent': 'rosav (nodejs)'
             }
@@ -259,6 +270,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
             url: 'https://api.github.com/rate_limit',
             method: 'GET',
             json: true,
+            gzip: true,
             headers: {
                 'User-Agent': 'rosav (nodejs)'
             }
@@ -286,6 +298,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
             url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
             method: 'GET',
             json: true,
+            gzip: true,
             headers: {
                 'User-Agent': 'rosav (nodejs)'
             }
@@ -308,6 +321,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
             update()
         } else {
             console.log(c.green("Hash list is up to date."))
+            prepscan()
         }
     } else {
         // If hashlist doesn't exist
@@ -315,5 +329,5 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
     }
 } else {
     console.log(c.yellow("Hash list updates disabled."))
-    startscan()
+    prepscan()
 }
