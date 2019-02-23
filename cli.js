@@ -191,20 +191,33 @@ const prepscan = () => {
 
     console.log(c.green("Loading hashes..."))
 
-    let instream = fs.createReadStream(path.join(storage, "hashlist.txt"));
-    let outstream = new stream;
-    let rl = readline.createInterface(instream, outstream);
-    rl.on('line', function(line) {
-        hashes.push(line);
-    });
-
-    rl.on('close', function() {
-        console.log(c.green("Finished loading hashes."))
-    }
-    );
+    new BufferedReader(path.join(storage, "hashlist.txt"), { encoding: "utf8" })
+        .on("error", (err) => {
+            handleError(err)
+        })
+        .on("line", (line) => {
+            hashes.push(line);
+        })
+        .on("end", () => {
+            console.log(c.green("Finished loading hashes."))
+        })
+        .read();
 
     startscan()
 
+}
+
+const requestParams = (url, json=false) => {
+    let params = {
+        gzip: true,
+        method: 'GET',
+        headers: {
+            'User-Agent': 'rosav (nodejs)'
+        }
+    }
+    params.url = url
+    params.json = json
+    return params
 }
 
 // If update is not disabled or hashlist doesn't exist
@@ -214,44 +227,16 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
         console.log(c.green("Updating hash list..."))
         // Download hashlist
         const dlbar = new progressbar.Bar({}, progressbar.Presets.shades_classic)
-        rprog(request({
-            url: "https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt",
-            gzip: true,
-            method: 'GET',
-            headers: {
-                'User-Agent': 'rosav (nodejs)'
-            }
-        }, (err, _, body) => {
+        rprog(request(requestParams("https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt"), (err, _res, _body) => {
             if (err) {
                 handleError(err)
             }
-
-            console.log(c.cyan("started"))
-
-            // Write the response to hashlist.txt
-            fs.writeFile(path.join(storage, "hashlist.txt"), body, (err) => {
-                if (err) {
-                    handleError(err)
-                }
-
-                console.log(c.green("Hash list updated."))
-
-                prepscan()
-            })
-        })).on('progress', (state) => {
+        }).pipe(fs.createWriteStream(path.join(storage, "hashlist.txt")))).on('progress', (state) => {
             dlbar.start(state.size.total, state.size.transferred)
-        }).on('end', function() {
+        }).on('end', () => {
             dlbar.stop()
         })
-        request({
-            url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
-            method: 'GET',
-            json: true,
-            gzip: true,
-            headers: {
-                'User-Agent': 'rosav (nodejs)'
-            }
-        }, (err, _, body) => {
+        request(requestParams("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", true), (err, _, body) => {
             if (err) {
                 handleError(err)
             }
@@ -266,15 +251,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
         let quotaremaining
 
         // Request the GitHub API rate limit
-        request({
-            url: 'https://api.github.com/rate_limit',
-            method: 'GET',
-            json: true,
-            gzip: true,
-            headers: {
-                'User-Agent': 'rosav (nodejs)'
-            }
-        }, (err, _, body) => {
+        request(requestParams("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", true), (err, _, body) => {
             if (err) {
                 handleError(err)
             }
