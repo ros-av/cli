@@ -35,9 +35,8 @@ const fs = require('graceful-fs')
 const progressbar = require('cli-progress')
 const scanbar = new progressbar.Bar({}, progressbar.Presets.shades_classic)
 
-// Large file support
-const readline = require('readline');
-const stream = require('stream');
+// Line by line reader
+const lblreader = require('line-by-line')
 
 // Print ASCII text
 console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\n ${c.blue("|  __ \\ / __ \\ / ____|")}     ${c.red("/\\ \\    / /")}\r\n ${c.blue("| |__) | |  | | (___")}      ${c.red("/  \\ \\  / / ")}\r\n ${c.blue("|  _  /| |  | |\\___ \\")}    ${c.red("/ /\\ \\  / /")}  \r\n ${c.blue("| | \\ \\| |__| |____) |")}  ${c.red("/ ____ \\  /")}   \r\n ${c.blue("|_|  \\_\\\\____/|_____/")}  ${c.red("/_/    \\_/")}    \n`)
@@ -69,8 +68,7 @@ const handleError = (err) => {
     process.exit(1)
 }
 
-// Hashes storage
-let hashes = []
+let hashListPath = path.join(storage, "hashlist.txt")
 
 const startscan = () => {
     let done = 0
@@ -97,26 +95,39 @@ const startscan = () => {
                     if (err) {
                         handleError(err)
                     }
-                    // If the hash is in the list
-                    if (hashes.includes(hash)) {
-                        console.log(c.red(`${path} is dangerous!`))
 
-                        if (args.action === "remove") {
-                            fs.unlink(path, (err) => {
-                                if (err) {
-                                    handleError(err)
-                                }
-                                if (args.verbose === "true") {
-                                    console.log(c.yellow(`${path} successfully deleted.`))
-                                }
-                            });
+                    let hlr = new lblreader(hashListPath);
+
+                    hlr.on('error', (err) => {
+                        handleError(err)
+                    });
+
+                    hlr.on('line', (line) => {
+                        if (hash === line) {
+                            lr.close()
+                            console.log(c.red(`${path} is dangerous!`))
+
+                            if (args.action === "remove") {
+                                fs.unlink(path, (err) => {
+                                    if (err) {
+                                        handleError(err)
+                                    }
+                                    if (args.verbose === "true") {
+                                        console.log(c.yellow(`${path} successfully deleted.`))
+                                    }
+                                });
+                            }
+                            updateProgressBar()
                         }
+                    });
 
-                    } else if (args.verbose === 'true') {
-                        // Otherwise, if verbose is enabled
-                        console.log(c.green(`${path} is safe.`))
-                    }
-                    updateProgressBar()
+                    hlr.on('end', () => {
+                        if (args.verbose === 'true') {
+                            // Otherwise, if verbose is enabled
+                            console.log(c.green(`${path} is safe.`))
+                        }
+                        updateProgressBar()
+                    })
                 })
             } else {
                 updateProgressBar()
@@ -189,53 +200,37 @@ const prepscan = () => {
         args._ = [__dirname]
     }
 
-    console.log(c.green("Loading hashes..."))
-
-    new BufferedReader(path.join(storage, "hashlist.txt"), { encoding: "utf8" })
-        .on("error", (err) => {
-            handleError(err)
-        })
-        .on("line", (line) => {
-            hashes.push(line);
-        })
-        .on("end", () => {
-            console.log(c.green("Finished loading hashes."))
-        })
-        .read();
-
     startscan()
 
 }
 
-const requestParams = (url, json=false) => {
-    let params = {
+const requestParams = (url, json = false) => {
+    return {
+        url: url,
+        json: json,
         gzip: true,
         method: 'GET',
         headers: {
             'User-Agent': 'rosav (nodejs)'
         }
     }
-    params.url = url
-    params.json = json
-    return params
 }
 
 // If update is not disabled or hashlist doesn't exist
-if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt"))) {
+if (args.update !== "false" || !fs.existsSync(hashListPath)) {
     // Define updater
     const update = () => {
         console.log(c.green("Updating hash list..."))
         // Download hashlist
         const dlbar = new progressbar.Bar({}, progressbar.Presets.shades_classic)
-        rprog(request(requestParams("https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt"), (err, _res, _body) => {
-            if (err) {
-                handleError(err)
-            }
-        }).pipe(fs.createWriteStream(path.join(storage, "hashlist.txt")))).on('progress', (state) => {
-            dlbar.start(state.size.total, state.size.transferred)
-        }).on('end', () => {
-            dlbar.stop()
-        })
+        rprog(request(requestParams("https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt")))
+            .on('progress', (state) => {
+                dlbar.start(state.size.total, state.size.transferred)
+            })
+            .on('end', () => {
+                dlbar.stop()
+            })
+            .pipe(fs.createWriteStream(hashListPath))
         request(requestParams("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", true), (err, _, body) => {
             if (err) {
                 handleError(err)
@@ -246,12 +241,12 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
         })
     }
     // If hashlist exists
-    if (fs.existsSync(path.join(storage, "hashlist.txt")) && args.update !== "true") {
+    if (fs.existsSync(hashListPath) && args.update !== "true") {
         // If updates are enabled
         let quotaremaining
 
         // Request the GitHub API rate limit
-        request(requestParams("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", true), (err, _, body) => {
+        request(requestParams("https://api.github.com/rate_limit", true), (err, _, body) => {
             if (err) {
                 handleError(err)
             }
