@@ -41,3 +41,4 @@ rosav --help
 - [x] Add a progress bar to display during scanning
 - [ ] Migrate core functions of the CLI to `index.js`
 - [ ] Allow specifying custom regex to match directories
+- [ ] Only scan for latest 1 million hashes as `Recent Malware Mode`
