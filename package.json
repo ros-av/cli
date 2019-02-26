@@ -37,10 +37,15 @@
   "pkg": {
     "targets": [
       "node10",
+      "freebsd",
       "linux",
       "alpine",
       "macos",
-      "win"
+      "win",
+      "x64",
+      "x86",
+      "armv6",
+      "armv7"
     ]
   },
   "keywords": [
