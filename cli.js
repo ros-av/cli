@@ -14,13 +14,13 @@ const storage = args.data ? args.data : path.join(require('temp-dir'), "rosav")
 
 // External file requester
 const request = require('request')
-const rprog = require('request-progress');
+const rprog = require('request-progress')
 
 // Time parser
 const dayjs = require('dayjs')
 
 // MD5 from file
-const md5File = require('md5-file')
+const MD5File = require('md5-file')
 
 // Simplified console colours
 const c = require('chalk')
@@ -32,11 +32,13 @@ gracefulFs.gracefulify(realFs)
 const fs = require('graceful-fs')
 
 // Progress bar
-const progressbar = require('cli-progress')
-const scanbar = new progressbar.Bar({}, progressbar.Presets.shades_classic)
+const CLIProgress = require('cli-progress')
 
 // Line by line reader
-const lblreader = require('line-by-line')
+const LineByLineReader = require('line-by-line')
+
+// Bloom filter functionality
+const { BloomFilter } = require('bloomfilter')
 
 // Print ASCII text
 console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\n ${c.blue("|  __ \\ / __ \\ / ____|")}     ${c.red("/\\ \\    / /")}\r\n ${c.blue("| |__) | |  | | (___")}      ${c.red("/  \\ \\  / / ")}\r\n ${c.blue("|  _  /| |  | |\\___ \\")}    ${c.red("/ /\\ \\  / /")}  \r\n ${c.blue("| | \\ \\| |__| |____) |")}  ${c.red("/ ____ \\  /")}   \r\n ${c.blue("|_|  \\_\\\\____/|_____/")}  ${c.red("/_/    \\_/")}    \n`)
@@ -58,22 +60,29 @@ if (!fs.existsSync(storage)) {
     console.log(c.green("Data directory found."))
 }
 
+// Display storage path
 if (args.verbose === "true") {
     console.log(c.cyan("Storage directory is " + storage))
 }
 
-// Add an error handler
+const scanbar = new CLIProgress.Bar({}, CLIProgress.Presets.shades_classic)
+
+// Error handler
 const handleError = (err) => {
     console.log(c.red("An error has occurred: " + err))
     process.exit(1)
 }
 
-let hashListPath = path.join(storage, "hashlist.txt")
+// Hash list
+let hashes = new BloomFilter(
+    16 * 512000000, // Number of bits to allocate
+    32              // Number of hash functions
+)
 
 const startscan = () => {
     let done = 0
 
-    const updateProgressBar = () => {
+    const updateCLIProgress = () => {
         if (args.progressbar !== "false") {
             scanbar.increment(1)
             done += 1
@@ -91,46 +100,34 @@ const startscan = () => {
             }
             // If path is not a directory
             if (!stats.isDirectory()) {
-                md5File(path, (err, hash) => {
+                MD5File(path, (err, hash) => {
                     if (err) {
                         handleError(err)
                     }
+                    if (hashes.test(hash)) {
+                        console.log(c.red(`${path} is dangerous!`))
 
-                    let hlr = new lblreader(hashListPath);
-
-                    hlr.on('error', (err) => {
-                        handleError(err)
-                    });
-
-                    hlr.on('line', (line) => {
-                        if (hash === line) {
-                            lr.close()
-                            console.log(c.red(`${path} is dangerous!`))
-
-                            if (args.action === "remove") {
-                                fs.unlink(path, (err) => {
-                                    if (err) {
-                                        handleError(err)
-                                    }
-                                    if (args.verbose === "true") {
-                                        console.log(c.yellow(`${path} successfully deleted.`))
-                                    }
-                                });
-                            }
-                            updateProgressBar()
+                        if (args.action === "remove") {
+                            fs.unlink(path, (err) => {
+                                if (err) {
+                                    handleError(err)
+                                }
+                                if (args.verbose === "true") {
+                                    console.log(c.yellow(`${path} successfully deleted.`))
+                                }
+                            })
                         }
-                    });
-
-                    hlr.on('end', () => {
+                        updateCLIProgress()
+                    } else {
                         if (args.verbose === 'true') {
                             // Otherwise, if verbose is enabled
                             console.log(c.green(`${path} is safe.`))
                         }
-                        updateProgressBar()
-                    })
+                        updateCLIProgress()
+                    }
                 })
             } else {
-                updateProgressBar()
+                updateCLIProgress()
             }
 
         })
@@ -200,10 +197,32 @@ const prepscan = () => {
         args._ = [__dirname]
     }
 
-    startscan()
+    console.log(c.green("Loading hashes..."))
+
+    // Line reader
+    let hlr = new LineByLineReader(path.join(storage, "hashlist.txt"), {
+        encoding: 'utf8',
+        skipEmptyLines: true
+    })
+
+    // Line reader error
+    hlr.on('error', (err) => {
+        handleError(err)
+    })
+
+    // New line from line reader
+    hlr.on('line', (line) => {
+        hashes.add(line)
+    })
+
+    // Line reader finished
+    hlr.on('end', () => {
+        startscan()
+    })
 
 }
 
+// Request parameters
 const requestParams = (url, json = false) => {
     return {
         url: url,
@@ -217,20 +236,23 @@ const requestParams = (url, json = false) => {
 }
 
 // If update is not disabled or hashlist doesn't exist
-if (args.update !== "false" || !fs.existsSync(hashListPath)) {
+if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt"))) {
     // Define updater
     const update = () => {
         console.log(c.green("Updating hash list..."))
         // Download hashlist
-        const dlbar = new progressbar.Bar({}, progressbar.Presets.shades_classic)
+        const dlbar = new CLIProgress.Bar({}, CLIProgress.Presets.shades_classic)
         rprog(request(requestParams("https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt")))
             .on('progress', (state) => {
-                dlbar.start(state.size.total, state.size.transferred)
+                if (args.progressbar !== "false") {
+                    dlbar.start(state.size.total, state.size.transferred)
+                }
+
             })
             .on('end', () => {
                 dlbar.stop()
             })
-            .pipe(fs.createWriteStream(hashListPath))
+            .pipe(fs.createWriteStream(path.join(storage, "hashlist.txt")))
         request(requestParams("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", true), (err, _, body) => {
             if (err) {
                 handleError(err)
@@ -241,7 +263,7 @@ if (args.update !== "false" || !fs.existsSync(hashListPath)) {
         })
     }
     // If hashlist exists
-    if (fs.existsSync(hashListPath) && args.update !== "true") {
+    if (fs.existsSync(path.join(storage, "hashlist.txt")) && args.update !== "true") {
         // If updates are enabled
         let quotaremaining
 

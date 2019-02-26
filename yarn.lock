@@ -149,6 +149,11 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
+bloomfilter@^0.0.18:
+  version "0.0.18"
+  resolved "https://registry.yarnpkg.com/bloomfilter/-/bloomfilter-0.0.18.tgz#6d55d34f0a214b235287b4eac9203ac623413dab"
+  integrity sha512-CbnyHE78gY1tpXS/Ap+B0RJxKdRWCDzjBnX97UJSG8rdLv1PK8GiTWc/CCQyWu6PWVD4lUceeFrqC6Mf3nMgOA==
+
 brace-expansion@^1.1.7:
   version "1.1.11"
   resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-1.1.11.tgz#3c7fcbf529d87226f3d2f52b966ff5271eb441dd"

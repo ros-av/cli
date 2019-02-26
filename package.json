@@ -18,6 +18,7 @@
   "author": "Richie Bendall <richiebendall@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "bloomfilter": "^0.0.18",
     "chalk": "^2.4.2",
     "cli-progress": "^2.1.1",
     "dayjs": "^1.8.6",
