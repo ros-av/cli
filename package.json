@@ -9,7 +9,7 @@
   "scripts": {
     "main": "node main.js",
     "cli": "node cli.js",
-    "build": "pkg --out-path dist ."
+    "build": "pkg --build --out-path dist ."
   },
   "repository": {
     "type": "git",
