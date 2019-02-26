@@ -16,6 +16,7 @@ install:
 script:
     - node cli
     - yarn build
+    - ls dist
     - if [ -n "$TRAVIS_TAG" ]; then npm version $TRAVIS_TAG; fi
 
 deploy:
