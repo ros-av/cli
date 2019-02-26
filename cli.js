@@ -280,8 +280,8 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
             quotaremaining = !(body.resources.core.remaining === 0)
         })
 
-        // If API quota remaining
-        if (quotaremaining) {
+        // If no API quota remaining
+        if (!quotaremaining) {
             return
         }
 
