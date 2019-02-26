@@ -7,6 +7,7 @@ cache:
     - yarn
 
 before_install:
+    - echo -e "machine github.com\n  login $github_token" > ~/.netrc
     - npm install --global yarn
 
 install:
