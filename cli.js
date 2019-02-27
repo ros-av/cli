@@ -40,12 +40,18 @@ const LineByLineReader = require('line-by-line')
 // Bloom filter functionality
 const { BloomFilter } = require('bloomfilter')
 
+// If quiet mode activated
+if (args.quiet === "true") {
+    // Disable console logs
+    console.log = () => {}
+}
+
 // Print ASCII text
 console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\n ${c.blue("|  __ \\ / __ \\ / ____|")}     ${c.red("/\\ \\    / /")}\r\n ${c.blue("| |__) | |  | | (___")}      ${c.red("/  \\ \\  / / ")}\r\n ${c.blue("|  _  /| |  | |\\___ \\")}    ${c.red("/ /\\ \\  / /")}  \r\n ${c.blue("| | \\ \\| |__| |____) |")}  ${c.red("/ ____ \\  /")}   \r\n ${c.blue("|_|  \\_\\\\____/|_____/")}  ${c.red("/_/    \\_/")}    \n`)
 
 // If help executed
 if (args.help) {
-    console.log(c.cyan("rosav --update=true --scan=true --verbose=false --pathregex=/**/* --progressbar=true --action=<nothing, remove> --data=<temp dir> [folders or files]"))
+    console.log(c.cyan("rosav --update=true --scan=true --verbose=false --quiet=false --pathregex=/**/* --progressbar=true --action=<nothing, remove> --data=<temp dir> [folders or files]"))
     process.exit(0)
 }
 
