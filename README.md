@@ -34,6 +34,10 @@ yarn global add rosav
 rosav --help
 ```
 
+## Translation
+
+Help translate ROS AV [here](https://translate.zanata.org/iteration/view/rosav/Main/languages).
+
 ## TODO
 
 - [ ] Catch all errors

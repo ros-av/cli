@@ -1,0 +1,16 @@
+{
+    "dircreated": "Data directory created.",
+    "dirfound": "Data directory found.",
+    "storage": "Storage directory is ${storage}",
+    "err": "An error has occurred: ${err}",
+    "dangerous": "${path} is dangerous!",
+    "deleted": "${path} successfully deleted.",
+    "safe": "${path} is safe.",
+    "startingscan": "Starting scan...",
+    "noexist": "${i} doesn't exist!",
+    "scandisabled": "Scanning disabled.",
+    "loadinghashes": "Loading hashes...",
+    "quotareached": "Maximum quota limit reached on the GitHub api. Updates will not work unless forced until ${dayjs(body.resources.core.reset).$d}",
+    "hashuptodate": "Hash list is up to date.",
+    "hashupdatedisabled": "Hash list updates disabled."
+}

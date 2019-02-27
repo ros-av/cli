@@ -68,14 +68,14 @@ if (!fs.existsSync(storage)) {
 
 // Display storage path
 if (args.verbose === "true") {
-    console.log(c.cyan("Storage directory is " + storage))
+    console.log(c.cyan(`Storage directory is ${storage}`))
 }
 
 const scanbar = new CLIProgress.Bar({}, CLIProgress.Presets.shades_classic)
 
 // Error handler
 const handleError = (err) => {
-    console.log(c.red("An error has occurred: " + err))
+    console.log(c.red(`An error has occurred: ${err}`))
     process.exit(1)
 }
 
@@ -282,7 +282,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
 
             // Check the quota limit
             if (body.resources.core.remaining === 0) {
-                console.log(c.yellow("Maximum quota limit reached on the GitHub api. Updates will not work unless forced until " + dayjs(body.resources.core.reset).$d))
+                console.log(c.yellow(`Maximum quota limit reached on the GitHub api. Updates will not work unless forced until ${dayjs(body.resources.core.reset).$d}`))
             }
             quotaremaining = !(body.resources.core.remaining === 0)
         })
