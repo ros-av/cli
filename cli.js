@@ -43,7 +43,7 @@ const { BloomFilter } = require('bloomfilter')
 // If quiet mode activated
 if (args.quiet === "true") {
     // Disable console logs
-    console.log = () => {}
+    console.log = () => { }
 }
 
 // Print ASCII text
@@ -243,6 +243,7 @@ const requestParams = (url, json = false) => {
 
 // If update is not disabled or hashlist doesn't exist
 if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt"))) {
+
     // Define updater
     const update = () => {
         console.log(c.green("Updating hash list..."))
@@ -287,7 +288,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
         })
 
         // If no API quota remaining
-        if (!quotaremaining) {
+        if (quotaremaining) {
             return
         }
 
