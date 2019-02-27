@@ -320,6 +320,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
 
         if (outdated) {
             update()
+            prepscan()
         } else {
             console.log(c.green("Hash list is up to date."))
             prepscan()
