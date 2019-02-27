@@ -45,7 +45,7 @@ console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\
 
 // If help executed
 if (args.help) {
-    console.log(c.cyan("rosav --update=true --scan=true --verbose=false --progressbar=true --action=<nothing, remove> --data=<temp dir> [folders or files]"))
+    console.log(c.cyan("rosav --update=true --scan=true --verbose=false --pathregex=/**/* --progressbar=true --action=<nothing, remove> --data=<temp dir> [folders or files]"))
     process.exit(0)
 }
 
@@ -144,7 +144,7 @@ const startscan = () => {
         } else if (fs.lstatSync(i).isDirectory()) {
             // If path is a directory
             if (args.recursive === 'true') {
-                glob(path.resolve(path.join(i, "/**/*")), (err, files) => {
+                glob(path.resolve(path.join(i, args.pathregex ? args.pathregex : "/**/*")), (err, files) => {
                     if (err) {
                         handleError(err)
                     }
