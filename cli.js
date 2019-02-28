@@ -75,8 +75,13 @@ const scanbar = new CLIProgress.Bar({}, CLIProgress.Presets.shades_classic)
 
 // Error handler
 const handleError = (err) => {
-    console.log(c.red(`An error has occurred: ${err}`))
-    process.exit(1)
+    if (verbose === "true") {
+        throw err
+    } else {
+        console.log(c.red(`An error has occurred: ${err}`))
+        process.exit(1)
+    }
+
 }
 
 // Hash list
