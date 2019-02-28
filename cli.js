@@ -71,13 +71,16 @@ if (args.verbose === "true") {
     console.log(c.cyan(`Storage directory is ${storage}`))
 }
 
+// Scanning progress bar
 const scanbar = new CLIProgress.Bar({}, CLIProgress.Presets.shades_classic)
 
 // Error handler
 const handleError = (err) => {
     if (verbose === "true") {
+        // Throw native error
         throw err
     } else {
+        // Throw custom error
         console.log(c.red(`An error has occurred: ${err}`))
         process.exit(1)
     }
@@ -93,6 +96,7 @@ let hashes = new BloomFilter(
 const startscan = () => {
     let done = 0
 
+    // Increment the scan bar progress
     const updateCLIProgress = () => {
         if (args.progressbar !== "false") {
             scanbar.increment(1)
@@ -111,20 +115,24 @@ const startscan = () => {
             }
             // If path is not a directory
             if (!stats.isDirectory()) {
+                // Get the MD5 of a file
                 MD5File(path, (err, hash) => {
                     if (err) {
                         handleError(err)
                     }
+                    // If the hash is in the list
                     if (hashes.test(hash)) {
                         console.log(c.red(`${path} is dangerous!`))
 
                         if (args.action === "remove") {
+                            // Delete the file
                             fs.unlink(path, (err) => {
                                 if (err) {
                                     handleError(err)
                                 }
                                 if (args.verbose === "true") {
-                                    console.log(c.yellow(`${path} successfully deleted.`))
+                                    // If verbose is enabled
+                                    console.log(c.green(`${path} successfully deleted.`))
                                 }
                             })
                         }
@@ -160,7 +168,9 @@ const startscan = () => {
                         handleError(err)
                     }
 
+                    // If progressbar enabled
                     if (args.progressbar !== "false") {
+                        // Start progressbar
                         scanbar.start(files.length, 0)
                     }
 
@@ -175,10 +185,13 @@ const startscan = () => {
                         handleError(err)
                     }
 
+                    // If progressbar enabled
                     if (args.progressbar !== "false") {
+                        // Start progressbar
                         scanbar.start(files.length, 0)
                     }
 
+                    // For each file
                     files.forEach(file => {
                         // If the MD5 hash is in the list
                         scan(path.resolve(i, file))
