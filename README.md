@@ -3,7 +3,7 @@
 
 [![ROS AV](https://a.icons8.com/kTZddigl/FNiIO4/ros-av.svg)](#)
 
-[![NPM](https://nodei.co/npm/rosav.png)](https://nodei.co/npm/rosav)
+[![NPM](https://nodei.co/npm/rosav.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/rosav)
 
 A CLI that scans your files for matches to the VirusShare database.
 
