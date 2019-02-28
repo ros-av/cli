@@ -76,7 +76,7 @@ const scanbar = new CLIProgress.Bar({}, CLIProgress.Presets.shades_classic)
 
 // Error handler
 const handleError = (err) => {
-    if (verbose === "true") {
+    if (args.verbose === "true") {
         // Throw native error
         throw err
     } else {
