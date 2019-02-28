@@ -297,15 +297,12 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
 
             // Check the quota limit
             if (body.resources.core.remaining === 0) {
+                // If no API quota remaining
                 console.log(c.yellow(`Maximum quota limit reached on the GitHub api. Updates will not work unless forced until ${dayjs(body.resources.core.reset).$d}`))
+                process.exit(1)
             }
-            quotaremaining = !(body.resources.core.remaining === 0)
         })
 
-        // If no API quota remaining
-        if (quotaremaining) {
-            return
-        }
 
         let outdated
 
