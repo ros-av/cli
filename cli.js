@@ -286,8 +286,6 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
     }
     // If hashlist exists
     if (fs.existsSync(path.join(storage, "hashlist.txt")) && args.update !== "true") {
-        // If updates are enabled
-        let quotaremaining
 
         // Request the GitHub API rate limit
         request(requestParams("https://api.github.com/rate_limit", true), (err, _, body) => {
