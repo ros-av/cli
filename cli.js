@@ -248,10 +248,20 @@ const requestParams = (url, json = false) => {
 
 // If update is not disabled or hashlist doesn't exist
 if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt"))) {
+    // Check if online
+    require('dns').lookup('google.com', (err) => {
+        if (err && err.code == "ENOTFOUND") {
+            console.log(c.red("You are not connected to the internet!"))
+            process.exit(1)
+        } else {
+            handleError(err)
+        }
+    })
 
     // Define updater
     const update = () => {
         console.log(c.green("Updating hash list..."))
+
         // Download hashlist
         const dlbar = new CLIProgress.Bar({}, CLIProgress.Presets.shades_classic)
         rprog(request(requestParams("https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt")))
