@@ -266,7 +266,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
         if (err && err.code == "ENOTFOUND") {
             console.log(c.red("You are not connected to the internet!"))
             process.exit(1)
-        } else {
+        } else if (err) {
             handleError(err)
         }
     })
