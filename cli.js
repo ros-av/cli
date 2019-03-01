@@ -25,14 +25,15 @@ const MD5File = require('md5-file')
 // Simplified console colours
 const c = require('chalk')
 
-// Prevent file overloads and provide filesystem functions
-let realFs = require('fs')
-let gracefulFs = require('graceful-fs')
-gracefulFs.gracefulify(realFs)
+// Provide improved filesystem functions
+const _realFs = require('fs')
+const _gracefulFs = require('graceful-fs')
+_gracefulFs.gracefulify(_realFs)
 const fs = require('graceful-fs')
 
-// Progress bar
+// Progress indicators
 const CLIProgress = require('cli-progress')
+const CLISpinner = require('cli-spinner').Spinner;
 
 // Line by line reader
 const LineByLineReader = require('line-by-line')
@@ -61,18 +62,18 @@ if (!fs.existsSync(storage)) {
     // Create storage directory
     fs.mkdirSync(storage, { recursive: true })
 
-    console.log(c.green("Data directory created."))
+    console.log(c.green("Data directory created"))
 } else {
-    console.log(c.green("Data directory found."))
+    console.log(c.green("Data directory found"))
 }
 
 // Display storage path
 if (args.verbose === "true") {
-    console.log(c.cyan(`Storage directory is ${storage}`))
+    console.log(c.magenta(`Storage directory is ${storage}`))
 }
 
 // Scanning progress bar
-const scanbar = new CLIProgress.Bar({}, CLIProgress.Presets.shades_classic)
+const progressbar = new CLIProgress.Bar({ format: c.cyan(' {bar} {percentage}% | ETA: {eta}s | {value}/{total}') }, CLIProgress.Presets.shades_classic)
 
 // Error handler
 const handleError = (err) => {
@@ -81,8 +82,7 @@ const handleError = (err) => {
         throw err
     } else {
         // Throw custom error
-        console.log(c.red(`An error has occurred: ${err}`))
-        process.exit(1)
+        console.err(c.red(`An error has occurred: ${err}`))
     }
 
 }
@@ -99,10 +99,11 @@ const startscan = () => {
     // Increment the scan bar progress
     const updateCLIProgress = () => {
         if (args.progressbar !== "false") {
-            scanbar.increment(1)
+            progressbar.increment(1)
             done += 1
-            if (done >= scanbar.total) {
-                scanbar.stop()
+            if (done >= progressbar.total) {
+                progressbar.stop()
+                console.log(c.green("Scan complete"))
                 process.exit(0)
             }
         }
@@ -153,7 +154,7 @@ const startscan = () => {
 
     }
 
-    console.log(c.green("Starting scan..."))
+    console.log(c.cyan("Scanning..."))
 
     // For each path
     args._.forEach((i) => {
@@ -171,7 +172,7 @@ const startscan = () => {
                     // If progressbar enabled
                     if (args.progressbar !== "false") {
                         // Start progressbar
-                        scanbar.start(files.length, 0)
+                        progressbar.start(files.length, 0)
                     }
 
                     files.forEach((file) => {
@@ -188,7 +189,7 @@ const startscan = () => {
                     // If progressbar enabled
                     if (args.progressbar !== "false") {
                         // Start progressbar
-                        scanbar.start(files.length, 0)
+                        progressbar.start(files.length, 0)
                     }
 
                     // For each file
@@ -221,10 +222,12 @@ const prepscan = () => {
         args._ = [__dirname]
     }
 
-    console.log(c.green("Loading hashes..."))
+    const spinner = new CLISpinner(c.cyan("Loading hashes %s (This may take a few minutes)"))
+    spinner.setSpinnerString('⣾⣽⣻⢿⡿⣟⣯⣷')
+    spinner.start()
 
     // Line reader
-    let hlr = new LineByLineReader(path.join(storage, "hashlist.txt"), {
+    const hlr = new LineByLineReader(path.join(storage, "hashlist.txt"), {
         encoding: 'utf8',
         skipEmptyLines: true
     })
@@ -241,6 +244,8 @@ const prepscan = () => {
 
     // Line reader finished
     hlr.on('end', () => {
+        spinner.stop()
+        console.log(c.green('\nFinished loading hashes'))
         startscan()
     })
 
@@ -261,31 +266,21 @@ const requestParams = (url, json = false) => {
 
 // If update is not disabled or hashlist doesn't exist
 if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt"))) {
-    // Check if online
-    require('dns').lookup('google.com', (err) => {
-        if (err && err.code == "ENOTFOUND") {
-            console.log(c.red("You are not connected to the internet!"))
-            process.exit(1)
-        } else if (err) {
-            handleError(err)
-        }
-    })
 
     // Define updater
     const update = () => {
-        console.log(c.green("Updating hash list..."))
+        console.log(c.cyan("Updating hash list..."))
 
         // Download hashlist
-        const dlbar = new CLIProgress.Bar({}, CLIProgress.Presets.shades_classic)
         rprog(request(requestParams("https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt")))
             .on('progress', (state) => {
                 if (args.progressbar !== "false") {
-                    dlbar.start(state.size.total, state.size.transferred)
+                    progressbar.start(state.size.total, state.size.transferred)
                 }
 
             })
             .on('end', () => {
-                dlbar.stop()
+                progressbar.stop()
             })
             .pipe(fs.createWriteStream(path.join(storage, "hashlist.txt")))
         request(requestParams("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", true), (err, _, body) => {
@@ -297,62 +292,69 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
             fs.writeFile(path.join(storage, "lastmodified.txt"), body.commit.author.date, () => { })
         })
     }
-    // If hashlist exists
-    if (fs.existsSync(path.join(storage, "hashlist.txt")) && args.update !== "true") {
 
-        // Request the GitHub API rate limit
-        request(requestParams("https://api.github.com/rate_limit", true), (err, _, body) => {
-            if (err) {
-                handleError(err)
-            }
-
-            // Check the quota limit
-            if (body.resources.core.remaining === 0) {
-                // If no API quota remaining
-                console.log(c.yellow(`Maximum quota limit reached on the GitHub api. Updates will not work unless forced until ${dayjs(body.resources.core.reset).$d}`))
-                process.exit(1)
-            }
-        })
-
-
-        let outdated
-
-        // Check for the latest commit
-        request({
-            url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
-            method: 'GET',
-            json: true,
-            gzip: true,
-            headers: {
-                'User-Agent': 'rosav (nodejs)'
-            }
-        }, (err, _, body) => {
-            if (err) {
-                handleError(err)
-            }
-
-            // Get download date of hashlist
-            let current = dayjs(fs.readFileSync(path.join(storage, "lastmodified.txt"), 'utf8'))
-
-            // Get latest commit date of hashlist
-            let now = dayjs(body.commit.author.date, 'YYYY-MM-DDTHH:MM:SSZ')
-
-            // Check if current is older than now
-            outdated = current < now
-        })
-
-        if (outdated) {
-            update()
-            prepscan()
+    // Check if online
+    require('dns').lookup('google.com', (err) => {
+        if (err && err.code == "ENOTFOUND") {
+            console.log(c.red("You are not connected to the internet!"))
+            process.exit(1)
+        } else if (err) {
+            handleError(err)
         } else {
-            console.log(c.green("Hash list is up to date."))
-            prepscan()
+            // If hashlist exists
+            if (fs.existsSync(path.join(storage, "hashlist.txt")) && args.update !== "true") {
+
+                // Request the GitHub API rate limit
+                request(requestParams("https://api.github.com/rate_limit", true), (err, _, body) => {
+                    if (err) {
+                        handleError(err)
+                    }
+
+                    // Check the quota limit
+                    if (body.resources.core.remaining === 0) {
+                        // If no API quota remaining
+                        console.log(c.yellow(`Maximum quota limit reached on the GitHub api. Updates will not work unless forced until ${dayjs(body.resources.core.reset).$d}`))
+                        prepscan()
+                    } else {
+                        // Check for the latest commit
+                        request({
+                            url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
+                            method: 'GET',
+                            json: true,
+                            gzip: true,
+                            headers: {
+                                'User-Agent': 'rosav (nodejs)'
+                            }
+                        }, (err, _, body) => {
+                            if (err) {
+                                handleError(err)
+                            }
+
+                            // Get download date of hashlist
+                            const current = dayjs(fs.readFileSync(path.join(storage, "lastmodified.txt"), 'utf8'))
+
+                            // Get latest commit date of hashlist
+                            const now = dayjs(body.commit.author.date, 'YYYY-MM-DDTHH:MM:SSZ')
+
+                            // Check if current is older than now
+                            if (current < now) {
+                                update()
+                            } else {
+                                console.log(c.green("Hash list is up to date"))
+                            }
+                            prepscan()
+                        })
+                    }
+                })
+
+            } else {
+                // If hashlist doesn't exist
+                update()
+            }
         }
-    } else {
-        // If hashlist doesn't exist
-        update()
-    }
+    })
+
 } else {
-    console.log(c.yellow("Hash list updates disabled."))
+    console.log(c.yellow("Hash list updates disabled"))
     prepscan()
 }

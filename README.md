@@ -35,6 +35,14 @@ yarn global add rosav
 rosav --help
 ```
 
+## CLI Colour Coding Guide
+
+- <span style="color: red">Red</span>: Error
+- <span style="color: yellow">Yellow</span>: Warning
+- <span style="color: green">Green</span>: Success
+- <span style="color: cyan">Cyan</span>: Progress
+- <span style="color: magenta">Magenta</span>: Debug information
+
 ## Translation
 
 Help translate ROS AV [here](https://translate.zanata.org/iteration/view/rosav/Main/languages).
