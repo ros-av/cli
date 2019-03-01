@@ -52,7 +52,7 @@ console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\
 
 // If help executed
 if (args.help) {
-    console.log(c.cyan("rosav --update=true --scan=true --verbose=false --quiet=false --pathregex=/**/* --progressbar=true --action=<nothing, remove> --data=<temp dir> [folders or files]"))
+    console.log(c.cyan("rosav --update=true --scan=true --verbose=false --quiet=false --pathregex=/**/* --progressbar=true --action=<nothing, remove, quarantine> --data=<temp dir> [folders or files]"))
     process.exit(0)
 }
 
@@ -109,33 +109,43 @@ const startscan = () => {
         }
     }
 
-    const scan = (path) => {
-        fs.lstat(path, (err, stats) => {
+    const scan = (file) => {
+        fs.lstat(file, (err, stats) => {
             if (err) {
                 handleError(err)
             }
             // If path is not a directory
             if (!stats.isDirectory()) {
                 // Get the MD5 of a file
-                MD5File(path, (err, hash) => {
+                MD5File(file, (err, hash) => {
                     if (err) {
                         handleError(err)
                     }
                     // If the hash is in the list
                     if (hashes.test(hash)) {
-                        console.log(c.red(`${path} is dangerous!`))
+                        console.log(c.red(`${file} is dangerous!`))
 
                         if (args.action === "remove") {
                             // Delete the file
-                            fs.unlink(path, (err) => {
+                            fs.unlink(file, (err) => {
                                 if (err) {
                                     handleError(err)
                                 }
                                 if (args.verbose === "true") {
                                     // If verbose is enabled
-                                    console.log(c.green(`${path} successfully deleted.`))
+                                    console.log(c.green(`${file} successfully deleted.`))
                                 }
                             })
+                        } else if (args.action === "quarantine") {
+                            fs.rename(file, path.resolve(path.join(storage, "quarantine"), path.basename(file)), (err) => {
+                                if (err) {
+                                    handleError(err)
+                                }
+                                if (args.verbose === "true") {
+                                    // If verbose is enabled
+                                    console.log(c.green(`${file} successfully quarantined.`))
+                                }
+                            });
                         }
                         updateCLIProgress()
                     } else {
