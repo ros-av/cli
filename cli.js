@@ -89,8 +89,8 @@ const handleError = (err) => {
 
 // Hash list
 let hashes = new BloomFilter(
-    16 * 512000000, // Number of bits to allocate
-    32              // Number of hash functions
+    1592401693, // Number of bits to allocate
+    33          // Number of hash functions
 )
 
 const startscan = () => {
