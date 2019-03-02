@@ -6,7 +6,7 @@ const path = require("path")
 // Get CLI arguments
 const args = require("commander")
     .description("A CLI that scans your files for matches to the VirusShare database.")
-    .usage('<options> <files and directories>')
+    .usage("<options> <files and directories>")
     .option("-u, --update <boolean>", "Hash list updates", null)
     .option("-s, --scan <boolean>", "Scanning", true)
     .option("-v, --verbose <boolean>", "Verbose output", false)
