@@ -95,7 +95,7 @@ const handleError = (err) => {
         throw err
     } else {
         // Throw custom error
-        console.err(c.red(`An error has occurred: ${err}`))
+        console.error(c.red(`An error has occurred: ${err}`))
     }
 
 }
