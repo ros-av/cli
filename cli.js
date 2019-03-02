@@ -311,12 +311,12 @@ const update = () => {
 }
 
 // If update is forced
-if (args.update) {
+if (args.update || !fs.existsSync(path.join(args.data, "hashlist.txt"))) {
     update()
 
 }
 // If hashlist does exist
-else if (fs.existsSync(path.join(args.data, "hashlist.txt"))) {
+else if (args.update !== false && fs.existsSync(path.join(args.data, "hashlist.txt"))) {
 
     // Check if online
     require("dns").lookup("google.com", (err) => {
