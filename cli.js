@@ -327,15 +327,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
                         prepscan()
                     } else {
                         // Check for the latest commit
-                        request({
-                            url: 'https://api.github.com/repos/Richienb/virusshare-hashes/commits/master',
-                            method: 'GET',
-                            json: true,
-                            gzip: true,
-                            headers: {
-                                'User-Agent': 'rosav (nodejs)'
-                            }
-                        }, (err, _, body) => {
+                        request(requestParams("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", true), (err, _, body) => {
                             if (err) {
                                 handleError(err)
                             }
