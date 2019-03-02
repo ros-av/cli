@@ -1,45 +1,45 @@
 #!/usr/bin/env node
 
 // Path joining procedures
-const path = require('path')
+const path = require("path")
 
 // File matcher
 const glob = require("glob")
 
 // Get CLI arguments
-const args = require('minimist')(process.argv.slice(2))
+const args = require("minimist")(process.argv.slice(2))
 
 // Set storage directory
-const storage = args.data ? args.data : path.join(require('temp-dir'), "rosav")
+const storage = args.data ? args.data : path.join(require("temp-dir"), "rosav")
 
 // External file requester
-const request = require('request')
-const rprog = require('request-progress')
+const request = require("request")
+const rprog = require("request-progress")
 
 // Time parser
-const dayjs = require('dayjs')
+const dayjs = require("dayjs")
 
 // MD5 from file
-const MD5File = require('md5-file')
+const MD5File = require("md5-file")
 
 // Simplified console colours
-const c = require('chalk')
+const c = require("chalk")
 
 // Provide improved filesystem functions
-const _realFs = require('fs')
-const _gracefulFs = require('graceful-fs')
+const _realFs = require("fs")
+const _gracefulFs = require("graceful-fs")
 _gracefulFs.gracefulify(_realFs)
-const fs = require('graceful-fs')
+const fs = require("graceful-fs")
 
 // Progress indicators
-const CLIProgress = require('cli-progress')
-const CLISpinner = require('cli-spinner').Spinner;
+const CLIProgress = require("cli-progress")
+const CLISpinner = require("cli-spinner").Spinner
 
 // Line by line reader
-const LineByLineReader = require('line-by-line')
+const LineByLineReader = require("line-by-line")
 
 // Bloom filter functionality
-const { BloomFilter } = require('bloomfilter')
+const { BloomFilter } = require("bloomfilter")
 
 // If quiet mode activated
 if (args.quiet === "true") {
@@ -56,7 +56,7 @@ if (args.help) {
     process.exit(0)
 }
 
-// If storage directory doesn't exist
+// If storage directory doesn"t exist
 if (!fs.existsSync(storage)) {
 
     // Create storage directory
@@ -73,7 +73,7 @@ if (args.verbose === "true") {
 }
 
 // Scanning progress bar
-const progressbar = new CLIProgress.Bar({ format: c.cyan(' {bar} {percentage}% | ETA: {eta}s | {value}/{total}') }, CLIProgress.Presets.shades_classic)
+const progressbar = new CLIProgress.Bar({ format: c.cyan(" {bar} {percentage}% | ETA: {eta}s | {value}/{total}") }, CLIProgress.Presets.shades_classic)
 
 // Error handler
 const handleError = (err) => {
@@ -145,11 +145,11 @@ const startscan = () => {
                                     // If verbose is enabled
                                     console.log(c.green(`${file} successfully quarantined.`))
                                 }
-                            });
+                            })
                         }
                         updateCLIProgress()
                     } else {
-                        if (args.verbose === 'true') {
+                        if (args.verbose === "true") {
                             // Otherwise, if verbose is enabled
                             console.log(c.green(`${path} is safe.`))
                         }
@@ -169,11 +169,11 @@ const startscan = () => {
     // For each path
     args._.forEach((i) => {
         if (!fs.existsSync(i)) {
-            // If path doesn't exist
-            console.log(c.yellow(`${i} doesn't exist!`))
+            // If path doesn"t exist
+            console.log(c.yellow(`${i} doesn"t exist!`))
         } else if (fs.lstatSync(i).isDirectory()) {
             // If path is a directory
-            if (args.recursive === 'true') {
+            if (args.recursive === "true") {
                 glob(path.resolve(path.join(i, args.pathregex ? args.pathregex : "/**/*")), (err, files) => {
                     if (err) {
                         handleError(err)
@@ -220,7 +220,7 @@ const startscan = () => {
 const prepscan = () => {
 
     // If scanning disabled
-    if (args.scan === 'false') {
+    if (args.scan === "false") {
         console.log(c.red("Scanning disabled."))
         process.exit(0)
     }
@@ -233,29 +233,29 @@ const prepscan = () => {
     }
 
     const spinner = new CLISpinner(c.cyan("Loading hashes %s (This may take a few minutes)"))
-    spinner.setSpinnerString('⣾⣽⣻⢿⡿⣟⣯⣷')
+    spinner.setSpinnerString("⣾⣽⣻⢿⡿⣟⣯⣷")
     spinner.start()
 
     // Line reader
     const hlr = new LineByLineReader(path.join(storage, "hashlist.txt"), {
-        encoding: 'utf8',
+        encoding: "utf8",
         skipEmptyLines: true
     })
 
     // Line reader error
-    hlr.on('error', (err) => {
+    hlr.on("error", (err) => {
         handleError(err)
     })
 
     // New line from line reader
-    hlr.on('line', (line) => {
+    hlr.on("line", (line) => {
         hashes.add(line)
     })
 
     // Line reader finished
-    hlr.on('end', () => {
+    hlr.on("end", () => {
         spinner.stop()
-        console.log(c.green('\nFinished loading hashes'))
+        console.log(c.green("\nFinished loading hashes"))
         startscan()
     })
 
@@ -267,14 +267,14 @@ const requestParams = (url, json = false) => {
         url: url,
         json: json,
         gzip: true,
-        method: 'GET',
+        method: "GET",
         headers: {
-            'User-Agent': 'rosav (nodejs)'
+            "User-Agent": "rosav (nodejs)"
         }
     }
 }
 
-// If update is not disabled or hashlist doesn't exist
+// If update is not disabled or hashlist doesn"t exist
 if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt"))) {
 
     // Define updater
@@ -283,13 +283,13 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
 
         // Download hashlist
         rprog(request(requestParams("https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt")))
-            .on('progress', (state) => {
+            .on("progress", (state) => {
                 if (args.progressbar !== "false") {
                     progressbar.start(state.size.total, state.size.transferred)
                 }
 
             })
-            .on('end', () => {
+            .on("end", () => {
                 progressbar.stop()
             })
             .pipe(fs.createWriteStream(path.join(storage, "hashlist.txt")))
@@ -304,7 +304,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
     }
 
     // Check if online
-    require('dns').lookup('google.com', (err) => {
+    require("dns").lookup("google.com", (err) => {
         if (err && err.code == "ENOTFOUND") {
             console.log(c.red("You are not connected to the internet!"))
             process.exit(1)
@@ -323,7 +323,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
                     // Check the quota limit
                     if (body.resources.core.remaining === 0) {
                         // If no API quota remaining
-                        console.log(c.yellow(`Maximum quota limit reached on the GitHub api. Updates will not work unless forced until ${dayjs(body.resources.core.reset).$d}`))
+                        console.log(c.yellow(`Maximum quota limit reached on the GitHub api. Automatic updates will not work unless forced until ${dayjs(body.resources.core.reset).$d}`))
                         prepscan()
                     } else {
                         // Check for the latest commit
@@ -333,13 +333,13 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
                             }
 
                             // Get download date of hashlist
-                            const current = dayjs(fs.readFileSync(path.join(storage, "lastmodified.txt"), 'utf8'))
+                            const current = dayjs(fs.readFileSync(path.join(storage, "lastmodified.txt"), "utf8"))
 
                             // Get latest commit date of hashlist
-                            const now = dayjs(body.commit.author.date, 'YYYY-MM-DDTHH:MM:SSZ')
+                            const now = dayjs(body.commit.author.date, "YYYY-MM-DDTHH:MM:SSZ")
 
                             // Check if current is older than now
-                            if (current < now) {
+                            if (current.isBefore(now)) {
                                 update()
                             } else {
                                 console.log(c.green("Hash list is up to date"))
@@ -350,7 +350,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
                 })
 
             } else {
-                // If hashlist doesn't exist
+                // If hashlist doesn"t exist
                 update()
             }
         }
