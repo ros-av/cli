@@ -51,6 +51,7 @@ Help translate ROS AV [here](https://translate.zanata.org/iteration/view/rosav/M
 
 - [ ] Catch all errors
 - [ ] Use asynchronous functions
+- [ ] Fix scan progress bar when scanning multiple items
 - [x] Add a progress bar to display during scanning
 - [ ] Migrate core functions of the CLI to `index.js`
 - [x] Allow specifying custom regex to match directories

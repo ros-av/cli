@@ -3,14 +3,33 @@
 // Path joining procedures
 const path = require("path")
 
-// File matcher
-const glob = require("glob")
-
 // Get CLI arguments
-const args = require("minimist")(process.argv.slice(2))
+const args = require("commander")
+    .description("A CLI that scans your files for matches to the VirusShare database.")
+    .usage('<options> <files and directories>')
+    .option("-u, --update <boolean>", "Hash list updates", null)
+    .option("-s, --scan <boolean>", "Scanning", true)
+    .option("-v, --verbose <boolean>", "Verbose output", false)
+    .option("-q, --quiet <boolean>", "No output", false)
+    .option("-r, --recursive <boolean>", "Recursive file scanning", false)
+    .option("-pr, --regex <string>", "Regex for recursive directory file matching", "/**/*")
+    .option("-p, --progress <boolean>", "Progress bars and spinners", true)
+    .option("-a, --action <string>", "Action to perform on dangerous files (nothing, remove, quarrantine)", true)
+    .option("-d, --data <string>", "Directory to store files", path.join(require("temp-dir"), "rosav"))
+    .parse(process.argv)
 
-// Set storage directory
-const storage = args.data ? args.data : path.join(require("temp-dir"), "rosav")
+// Object boolean normalizer
+const normalizeObject = (obj) => {
+    const keys = Object.keys(obj)
+    for (let i = 0; i < keys.length; i++) {
+        if (typeof obj[keys[i]] === "string" && ["true", "True", "false", "False"].includes(obj[keys[i]])) {
+            obj[keys[i]] = obj[keys[i]].toLowerCase() === "true"
+        }
+    }
+}
+
+// Normalize CLI arguments
+normalizeObject(args)
 
 // External file requester
 const request = require("request")
@@ -42,25 +61,19 @@ const LineByLineReader = require("line-by-line")
 const { BloomFilter } = require("bloomfilter")
 
 // If quiet mode activated
-if (args.quiet === "true") {
+if (args.quiet) {
     // Disable console logs
     console.log = () => { }
 }
 
 // Print ASCII text
-console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\n ${c.blue("|  __ \\ \/ __ \\ \/ ____|")}     ${c.red("\/\\ \\    \/ \/")}\r\n ${c.blue("| |__) | |  | | (___")}      ${c.red("\/  \\ \\  \/ \/")} \r\n ${c.blue("|  _  \/| |  | |\\___ \\")}    ${c.red("\/ \/\\ \\ \\\/ \/")}  \r\n ${c.blue("| | \\ \\| |__| |____) |")}  ${c.red("\/ ____ \\  \/")}   \r\n ${c.blue("|_|  \\_\\\\____\/|_____\/")}  ${c.red("\/_\/    \\_\\\/")}`)
+console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\n ${c.blue("|  __ \\ \/ __ \\ \/ ____|")}     ${c.red("\/\\ \\    \/ \/")}\r\n ${c.blue("| |__) | |  | | (___")}      ${c.red("\/  \\ \\  \/ \/")} \r\n ${c.blue("|  _  \/| |  | |\\___ \\")}    ${c.red("\/ \/\\ \\ \\\/ \/")}  \r\n ${c.blue("| | \\ \\| |__| |____) |")}  ${c.red("\/ ____ \\  \/")}   \r\n ${c.blue("|_|  \\_\\\\____\/|_____\/")}  ${c.red("\/_\/    \\_\\\/")}\n`)
 
-// If help executed
-if (args.help) {
-    console.log(c.cyan("rosav --update=true --scan=true --verbose=false --quiet=false --pathregex=/**/* --progressbar=true --action=<nothing, remove, quarantine> --data=<temp dir> [folders or files]"))
-    process.exit(0)
-}
-
-// If storage directory doesn"t exist
-if (!fs.existsSync(storage)) {
+// If storage directory doesn't exist
+if (!fs.existsSync(args.data)) {
 
     // Create storage directory
-    fs.mkdirSync(storage, { recursive: true })
+    fs.mkdirSync(args.data, { recursive: true })
 
     console.log(c.green("Data directory created"))
 } else {
@@ -68,8 +81,8 @@ if (!fs.existsSync(storage)) {
 }
 
 // Display storage path
-if (args.verbose === "true") {
-    console.log(c.magenta(`Storage directory is ${storage}`))
+if (args.verbose) {
+    console.log(c.magenta(`Storage directory is ${args.data}`))
 }
 
 // Scanning progress bar
@@ -77,7 +90,7 @@ const progressbar = new CLIProgress.Bar({ format: c.cyan(" {bar} {percentage}% |
 
 // Error handler
 const handleError = (err) => {
-    if (args.verbose === "true") {
+    if (args.verbose) {
         // Throw native error
         throw err
     } else {
@@ -98,7 +111,7 @@ const startscan = () => {
 
     // Increment the scan bar progress
     const updateCLIProgress = () => {
-        if (args.progressbar !== "false") {
+        if (args.progress) {
             progressbar.increment(1)
             done += 1
             if (done >= progressbar.total) {
@@ -131,17 +144,17 @@ const startscan = () => {
                                 if (err) {
                                     handleError(err)
                                 }
-                                if (args.verbose === "true") {
+                                if (args.verbose) {
                                     // If verbose is enabled
                                     console.log(c.green(`${file} successfully deleted.`))
                                 }
                             })
                         } else if (args.action === "quarantine") {
-                            fs.rename(file, path.resolve(path.join(storage, "quarantine"), path.basename(file)), (err) => {
+                            fs.rename(file, path.resolve(path.join(args.data, "quarantine"), path.basename(file)), (err) => {
                                 if (err) {
                                     handleError(err)
                                 }
-                                if (args.verbose === "true") {
+                                if (args.verbose) {
                                     // If verbose is enabled
                                     console.log(c.green(`${file} successfully quarantined.`))
                                 }
@@ -149,7 +162,7 @@ const startscan = () => {
                         }
                         updateCLIProgress()
                     } else {
-                        if (args.verbose === "true") {
+                        if (args.verbose) {
                             // Otherwise, if verbose is enabled
                             console.log(c.green(`${path} is safe.`))
                         }
@@ -167,20 +180,20 @@ const startscan = () => {
     console.log(c.cyan("Scanning..."))
 
     // For each path
-    args._.forEach((i) => {
+    args.args.forEach((i) => {
         if (!fs.existsSync(i)) {
-            // If path doesn"t exist
-            console.log(c.yellow(`${i} doesn"t exist!`))
+            // If path doesn't exist
+            console.log(c.yellow(`${i} doesn't exist!`))
         } else if (fs.lstatSync(i).isDirectory()) {
             // If path is a directory
-            if (args.recursive === "true") {
-                glob(path.resolve(path.join(i, args.pathregex ? args.pathregex : "/**/*")), (err, files) => {
+            if (args.recursive) {
+                require("glob")(path.resolve(path.join(i, args.regex)), (err, files) => {
                     if (err) {
                         handleError(err)
                     }
 
                     // If progressbar enabled
-                    if (args.progressbar !== "false") {
+                    if (args.progress) {
                         // Start progressbar
                         progressbar.start(files.length, 0)
                     }
@@ -197,7 +210,7 @@ const startscan = () => {
                     }
 
                     // If progressbar enabled
-                    if (args.progressbar !== "false") {
+                    if (args.progress) {
                         // Start progressbar
                         progressbar.start(files.length, 0)
                     }
@@ -220,16 +233,9 @@ const startscan = () => {
 const prepscan = () => {
 
     // If scanning disabled
-    if (args.scan === "false") {
+    if (!args.scan) {
         console.log(c.red("Scanning disabled."))
         process.exit(0)
-    }
-
-    // If no paths specified
-    if (!args._[0]) {
-
-        // Set to current directory
-        args._ = [__dirname]
     }
 
     const spinner = new CLISpinner(c.cyan("Loading hashes %s (This may take a few minutes)"))
@@ -237,7 +243,7 @@ const prepscan = () => {
     spinner.start()
 
     // Line reader
-    const hlr = new LineByLineReader(path.join(storage, "hashlist.txt"), {
+    const hlr = new LineByLineReader(path.join(args.data, "hashlist.txt"), {
         encoding: "utf8",
         skipEmptyLines: true
     })
@@ -274,34 +280,43 @@ const requestParams = (url, json = false) => {
     }
 }
 
-// If update is not disabled or hashlist doesn"t exist
-if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt"))) {
+// Define updater
+const update = () => {
+    console.log(c.cyan("Updating hash list..."))
 
-    // Define updater
-    const update = () => {
-        console.log(c.cyan("Updating hash list..."))
+    // Download latest commit date of hash list
+    request(requestParams("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", true), (err, _, body) => {
+        if (err) {
+            handleError(err)
+        }
 
-        // Download hashlist
-        rprog(request(requestParams("https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt")))
-            .on("progress", (state) => {
-                if (args.progressbar !== "false") {
-                    progressbar.start(state.size.total, state.size.transferred)
-                }
+        // Write date to file
+        fs.writeFile(path.join(args.data, "lastmodified.txt"), body.commit.author.date, () => { })
+    })
 
-            })
-            .on("end", () => {
-                progressbar.stop()
-            })
-            .pipe(fs.createWriteStream(path.join(storage, "hashlist.txt")))
-        request(requestParams("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", true), (err, _, body) => {
-            if (err) {
-                handleError(err)
+    // Download hashlist
+    rprog(request(requestParams("https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt")))
+        .on("progress", (state) => {
+            if (args.progress) {
+                progressbar.start(state.size.total, state.size.transferred)
             }
 
-            // Write date to file
-            fs.writeFile(path.join(storage, "lastmodified.txt"), body.commit.author.date, () => { })
         })
-    }
+        .on("end", () => {
+            progressbar.stop()
+            prepscan()
+        })
+        .pipe(fs.createWriteStream(path.join(args.data, "hashlist.txt")))
+
+}
+
+// If update is forced
+if (args.update) {
+    update()
+
+}
+// If hashlist does exist
+else if (fs.existsSync(path.join(args.data, "hashlist.txt"))) {
 
     // Check if online
     require("dns").lookup("google.com", (err) => {
@@ -311,8 +326,8 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
         } else if (err) {
             handleError(err)
         } else {
-            // If hashlist exists
-            if (fs.existsSync(path.join(storage, "hashlist.txt")) && args.update !== "true") {
+            // If hashlist exists or update not forced
+            if (!args.update && fs.existsSync(path.join(args.data, "hashlist.txt"))) {
 
                 // Request the GitHub API rate limit
                 request(requestParams("https://api.github.com/rate_limit", true), (err, _, body) => {
@@ -333,7 +348,7 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
                             }
 
                             // Get download date of hashlist
-                            const current = dayjs(fs.readFileSync(path.join(storage, "lastmodified.txt"), "utf8"))
+                            const current = dayjs(fs.readFileSync(path.join(args.data, "lastmodified.txt"), "utf8"))
 
                             // Get latest commit date of hashlist
                             const now = dayjs(body.commit.author.date, "YYYY-MM-DDTHH:MM:SSZ")
@@ -343,15 +358,16 @@ if (args.update !== "false" || !fs.existsSync(path.join(storage, "hashlist.txt")
                                 update()
                             } else {
                                 console.log(c.green("Hash list is up to date"))
+                                prepscan()
                             }
-                            prepscan()
                         })
                     }
                 })
 
             } else {
-                // If hashlist doesn"t exist
+                // If hashlist doesn't exist
                 update()
+
             }
         }
     })
