@@ -12,10 +12,11 @@ const args = require("commander")
     .option("-v, --verbose <boolean>", "Verbose output", false)
     .option("-q, --quiet <boolean>", "No output", false)
     .option("-r, --recursive <boolean>", "Recursive file scanning", false)
-    .option("-pr, --regex <string>", "Regex for recursive directory file matching", "/**/*")
+    .option("-e, --regex <string>", "Regex for recursive directory file matching", "/**/*")
     .option("-p, --progress <boolean>", "Progress bars and spinners", true)
     .option("-a, --action <string>", "Action to perform on dangerous files (nothing, remove, quarrantine)", true)
     .option("-d, --data <string>", "Directory to store files", path.join(require("temp-dir"), "rosav"))
+    .option("-t --realtimeprotection <boolean>", "Use realtime protection", false)
     .parse(process.argv)
 
 // Object boolean normalizer
@@ -227,6 +228,14 @@ const startscan = () => {
             // If path is a file
             scan(path.resolve(__dirname, i))
 
+    })
+    args.args.forEach((i) => {
+        // Watch the path with the change listener and completion callback
+        watchr.open(path.resolve(i), (changeType, fullPath, _currentStat, _previousStat) => {
+            if (["update", "create"].includes(changeType)) {
+                scan(fullPath)
+            }
+        }, () => {})
     })
 }
 

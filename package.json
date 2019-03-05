@@ -30,7 +30,8 @@
     "md5-file": "^4.0.0",
     "request": "^2.88.0",
     "request-progress": "^3.0.0",
-    "temp-dir": "^1.0.0"
+    "temp-dir": "^1.0.0",
+    "watchr": "^4.1.0"
   },
   "devDependencies": {
     "pkg": "^4.3.7"
