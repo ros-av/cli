@@ -1,5 +1,5 @@
 {
-  "name": "@rosav/core",
+  "name": "@rosav/cli",
   "description": "A CLI that scans your files for matches to the VirusShare database.",
   "version": "0.0.0",
   "main": "index.js",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Richienb/rosav.git"
+    "url": "git+https://github.com/@rosav/cli.git"
   },
   "author": "Richie Bendall <richiebendall@gmail.com>",
   "license": "MIT",

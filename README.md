@@ -1,19 +1,19 @@
-[![Travis CI Build Status](https://img.shields.io/travis/com/Richienb/rosav/master.svg?style=for-the-badge)](https://travis-ci.com/Richienb/rosav)
-[![CodeFactor Score](https://www.codefactor.io/repository/github/richienb/rosav/badge?style=for-the-badge)](https://www.codefactor.io/repository/github/richienb/rosav)
+[![Travis CI Build Status](https://img.shields.io/travis/com/ros-av/cli/master.svg?style=for-the-badge)](https://travis-ci.com/ros-av/cli)
+[![CodeFactor Score](https://www.codefactor.io/repository/github/ros-av/cli/badge?style=for-the-badge)](https://www.codefactor.io/repository/github/ros-av/cli)
 
 [![ROS AV](https://a.icons8.com/kTZddigl/FNiIO4/ros-av.svg)](#)
 
-[![NPM](https://nodei.co/npm/rosav.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/rosav)
+[![NPM](https://nodei.co/npm/@rosav/cli.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/@rosav/cli)
 
 A CLI that scans your files for matches to the VirusShare database.
 
-Documentation available [here](https://richienb.github.io/rosav).
+Documentation available [here](https://ros-av.richie-bendall.ml/).
 
 ## Installation
 
 ### Prebuilt binary
 
-Download [here](https://github.com/Richienb/rosav/releases/latest).
+Download [here](https://github.com/ros-av/main/releases).
 
 ### Package manager
 
