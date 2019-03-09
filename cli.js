@@ -16,7 +16,6 @@ const args = require("commander")
     .option("-p, --progress <boolean>", "Progress bars and spinners", true)
     .option("-a, --action <string>", "Action to perform on dangerous files (nothing, remove, quarrantine)", true)
     .option("-d, --data <string>", "Directory to store files", path.join(require("temp-dir"), "rosav"))
-    .option("-t --realtimeprotection <boolean>", "Use realtime protection", false)
     .parse(process.argv)
 
 // Object boolean normalizer
