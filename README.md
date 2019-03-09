@@ -13,7 +13,7 @@ Documentation available [here](https://ros-av.richie-bendall.ml/).
 
 ### Prebuilt binary
 
-Download [here](https://github.com/ros-av/main/releases).
+Download [here](https://github.com/ros-av/cli/releases).
 
 ### Package manager
 
