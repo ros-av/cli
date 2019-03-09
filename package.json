@@ -13,7 +13,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/@rosav/cli.git"
+        "url": "git+https://github.com/ros-av/cli.git"
     },
     "author": "Richie Bendall <richiebendall@gmail.com>",
     "license": "MIT",
@@ -52,7 +52,7 @@
     "bugs": {
         "url": "https://github.com/ros-av/cli/issues"
     },
-    "homepage": "https://github.com/ros-av/cli#readme",
+    "homepage": "https://ros-av.github.io",
     "publishConfig": {
         "access": "public"
     }
