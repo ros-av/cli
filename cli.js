@@ -229,14 +229,6 @@ const startscan = () => {
             scan(path.resolve(__dirname, i))
 
     })
-    args.args.forEach((i) => {
-        // Watch the path with the change listener and completion callback
-        watchr.open(path.resolve(i), (changeType, fullPath, _currentStat, _previousStat) => {
-            if (["update", "create"].includes(changeType)) {
-                scan(fullPath)
-            }
-        }, () => {})
-    })
 }
 
 const prepscan = () => {
