@@ -1,56 +1,59 @@
 {
-  "name": "@rosav/cli",
-  "description": "A CLI that scans your files for matches to the VirusShare database.",
-  "version": "0.0.0",
-  "main": "index.js",
-  "bin": {
-    "rosav": "cli.js"
-  },
-  "scripts": {
-    "main": "node main.js",
-    "cli": "node cli.js",
-    "build": "pkg --out-path dist ."
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/@rosav/cli.git"
-  },
-  "author": "Richie Bendall <richiebendall@gmail.com>",
-  "license": "MIT",
-  "dependencies": {
-    "bloomfilter": "^0.0.18",
-    "chalk": "^2.4.2",
-    "cli-progress": "^2.1.1",
-    "cli-spinner": "^0.2.8",
-    "commander": "^2.19.0",
-    "dayjs": "^1.8.6",
-    "glob": "^7.1.3",
-    "graceful-fs": "^4.1.15",
-    "line-by-line": "^0.1.6",
-    "md5-file": "^4.0.0",
-    "request": "^2.88.0",
-    "request-progress": "^3.0.0",
-    "temp-dir": "^1.0.0"
-  },
-  "devDependencies": {
-    "pkg": "^4.3.7"
-  },
-  "pkg": {
-    "targets": [
-      "node10",
-      "linux",
-      "macos",
-      "win",
-      "x64"
-    ]
-  },
-  "keywords": [
-    "av",
-    "antivirus",
-    "viruslist"
-  ],
-  "bugs": {
-    "url": "https://github.com/Richienb/rosav/issues"
-  },
-  "homepage": "https://github.com/Richienb/rosav#readme"
+    "name": "@rosav/cli",
+    "description": "A CLI that scans your files for matches to the VirusShare database.",
+    "version": "0.0.0",
+    "main": "index.js",
+    "bin": {
+        "rosav": "cli.js"
+    },
+    "scripts": {
+        "main": "node main.js",
+        "cli": "node cli.js",
+        "build": "pkg --out-path dist ."
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/@rosav/cli.git"
+    },
+    "author": "Richie Bendall <richiebendall@gmail.com>",
+    "license": "MIT",
+    "dependencies": {
+        "bloomfilter": "^0.0.18",
+        "chalk": "^2.4.2",
+        "cli-progress": "^2.1.1",
+        "cli-spinner": "^0.2.8",
+        "commander": "^2.19.0",
+        "dayjs": "^1.8.6",
+        "glob": "^7.1.3",
+        "graceful-fs": "^4.1.15",
+        "line-by-line": "^0.1.6",
+        "md5-file": "^4.0.0",
+        "request": "^2.88.0",
+        "request-progress": "^3.0.0",
+        "temp-dir": "^1.0.0"
+    },
+    "devDependencies": {
+        "pkg": "^4.3.7"
+    },
+    "pkg": {
+        "targets": [
+            "node10",
+            "linux",
+            "macos",
+            "win",
+            "x64"
+        ]
+    },
+    "keywords": [
+        "av",
+        "antivirus",
+        "viruslist"
+    ],
+    "bugs": {
+        "url": "https://github.com/ros-av/cli/issues"
+    },
+    "homepage": "https://github.com/ros-av/cli#readme",
+    "publishConfig": {
+        "access": "public"
+    }
 }
