@@ -1,4 +1,4 @@
-report.*.json
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Created by https://www.gitignore.io/api/node,macos,linux,windows
 # Edit at https://www.gitignore.io/?templates=node,macos,linux,windows
