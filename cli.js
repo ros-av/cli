@@ -31,8 +31,26 @@ const normalizeObject = (obj) => {
 // Normalize CLI arguments
 normalizeObject(args)
 
-// External file requester
-const request = require("request")
+// User agent for requests
+const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36"
+
+// Regular request
+const request = require("request").defaults({
+    gzip: true,
+    method: "GET",
+    headers: {
+        "User-Agent": userAgent,
+    },
+})
+
+// Request for the GitHub api
+const githubapi = request.defaults({
+    json: true,
+    headers: {
+        "Accept": "application/vnd.github.v3+json",
+    },
+})
+
 const rprog = require("request-progress")
 
 // Time parser
@@ -45,10 +63,7 @@ const MD5File = require("md5-file")
 const c = require("chalk")
 
 // Provide improved filesystem functions
-const _realFs = require("fs")
-const _gracefulFs = require("graceful-fs")
-_gracefulFs.gracefulify(_realFs)
-const fs = require("graceful-fs")
+const fs = require("graceful-fs").gracefulify(require("fs"))
 
 // Progress indicators
 const CLIProgress = require("cli-progress")
@@ -58,12 +73,14 @@ const CLISpinner = require("cli-spinner").Spinner
 const LineByLineReader = require("line-by-line")
 
 // Bloom filter functionality
-const { BloomFilter } = require("bloomfilter")
+const {
+    BloomFilter
+} = require("bloomfilter")
 
 // If quiet mode activated
 if (args.quiet) {
     // Disable console logs
-    console.log = () => { }
+    console.log = () => {}
 }
 
 // Print ASCII text
@@ -73,37 +90,43 @@ console.log(`  ${c.blue("_____   ____   _____")}       ${c.red("__      __")}\r\
 if (!fs.existsSync(args.data)) {
 
     // Create storage directory
-    fs.mkdirSync(args.data, { recursive: true })
+    fs.mkdirSync(args.data, {
+        recursive: true
+    })
 
     console.log(c.green("Data directory created"))
-} else {
-    console.log(c.green("Data directory found"))
-}
+} else console.log(c.green("Data directory found"))
 
 // Display storage path
-if (args.verbose) {
-    console.log(c.magenta(`Storage directory is ${args.data}`))
-}
+if (args.verbose) console.log(c.magenta(`Storage directory is ${args.data}`))
 
 // Scanning progress bar
-const progressbar = new CLIProgress.Bar({ format: c.cyan(" {bar} {percentage}% | ETA: {eta}s | {value}/{total}") }, CLIProgress.Presets.shades_classic)
+const progressbar = new CLIProgress.Bar({
+    format: c.cyan(" {bar} {percentage}% | ETA: {eta}s | {value}/{total}")
+}, CLIProgress.Presets.shades_classic)
 
 // Error handler
 const handleError = (err) => {
-    if (args.verbose) {
-        // Throw native error
-        throw err
-    } else {
-        // Throw custom error
-        console.error(c.red(`An error has occurred: ${err}`))
-    }
+    // If verbose enabled throw native error
+    if (args.verbose) throw err
 
+    // Otherwise, throw custom error
+    else console.error(c.red(`An error has occurred: ${err}`))
 }
+
+const bestForBloom = ((n, p) => {
+    const m = Math.ceil((n * Math.log(p)) / Math.log(1 / (2 ** Math.log(2))))
+    const k = Math.round((m / n) * Math.log(2))
+    return {
+        m: m,
+        k: k
+    }
+})(33226750, 1e-10)
 
 // Hash list
 let hashes = new BloomFilter(
-    1592401693, // Number of bits to allocate
-    33          // Number of hash functions
+    bestForBloom.m, // Number of bits to allocate
+    bestForBloom.k // Number of hash functions
 )
 
 const startscan = () => {
@@ -169,12 +192,8 @@ const startscan = () => {
                         updateCLIProgress()
                     }
                 })
-            } else {
-                updateCLIProgress()
-            }
-
+            } else updateCLIProgress()
         })
-
     }
 
     console.log(c.cyan("Scanning..."))
@@ -187,51 +206,35 @@ const startscan = () => {
         } else if (fs.lstatSync(i).isDirectory()) {
             // If path is a directory
             if (args.recursive) {
-                require("glob")(path.resolve(path.join(i, args.regex)), (err, files) => {
-                    if (err) {
-                        handleError(err)
-                    }
+                require("glob")(path.resolve(path.join(i, args.regex)), {
+                    nodir: true
+                }, (err, files) => {
+                    if (err) handleError(err)
 
-                    // If progressbar enabled
-                    if (args.progress) {
-                        // Start progressbar
-                        progressbar.start(files.length, 0)
-                    }
+                    // If the progresbar is enabled, start it
+                    if (args.progress) progressbar.start(files.length, 0)
 
-                    files.forEach((file) => {
-                        // If the MD5 hash is in the list
-                        scan(path.resolve(i, file))
-                    })
+                    // For each file, check if it is in the list
+                    files.forEach((file) => scan(path.resolve(i, file)))
                 })
             } else {
                 fs.readdir(path.resolve(i), (err, files) => {
-                    if (err) {
-                        handleError(err)
-                    }
+                    if (err) handleError(err)
 
-                    // If progressbar enabled
-                    if (args.progress) {
-                        // Start progressbar
-                        progressbar.start(files.length, 0)
-                    }
+                    // If the progresbar is enabled, start it
+                    if (args.progress) progressbar.start(files.length, 0)
 
-                    // For each file
-                    files.forEach(file => {
-                        // If the MD5 hash is in the list
-                        scan(path.resolve(i, file))
-                    })
+                    // For each file, check if it is in the list
+                    files.forEach(file => scan(path.resolve(i, file)))
                 })
             }
-
         } else
             // If path is a file
             scan(path.resolve(__dirname, i))
-
     })
 }
 
 const prepscan = () => {
-
     // If scanning disabled
     if (!args.scan) {
         console.log(c.red("Scanning disabled."))
@@ -249,14 +252,10 @@ const prepscan = () => {
     })
 
     // Line reader error
-    hlr.on("error", (err) => {
-        handleError(err)
-    })
+    hlr.on("error", (err) => handleError(err))
 
     // New line from line reader
-    hlr.on("line", (line) => {
-        hashes.add(line)
-    })
+    hlr.on("line", (line) => hashes.add(line))
 
     // Line reader finished
     hlr.on("end", () => {
@@ -267,73 +266,51 @@ const prepscan = () => {
 
 }
 
-// Request parameters
-const requestParams = (url, json = false) => {
-    return {
-        url: url,
-        json: json,
-        gzip: true,
-        method: "GET",
-        headers: {
-            "User-Agent": "rosav (nodejs)"
-        }
-    }
-}
-
 // Define updater
 const update = () => {
     console.log(c.cyan("Updating hash list..."))
 
     // Download latest commit date of hash list
-    request(requestParams("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", true), (err, _, body) => {
-        if (err) {
-            handleError(err)
-        }
+    githubapi("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", (err, _, {
+        commit
+    }) => {
+        if (err) handleError(err)
 
         // Write date to file
-        fs.writeFile(path.join(args.data, "lastmodified.txt"), body.commit.author.date, () => { })
+        fs.writeFile(path.join(args.data, "lastmodified.txt"), commit.author.date, () => {})
     })
 
     // Download hashlist
-    rprog(request(requestParams("https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt")))
+    rprog(request("https://media.githubusercontent.com/media/Richienb/virusshare-hashes/master/virushashes.txt"))
         .on("progress", (state) => {
-            if (args.progress) {
-                progressbar.start(state.size.total, state.size.transferred)
-            }
-
+            if (args.progress) progressbar.start(state.size.total, state.size.transferred)
         })
         .on("end", () => {
             progressbar.stop()
             prepscan()
         })
         .pipe(fs.createWriteStream(path.join(args.data, "hashlist.txt")))
-
 }
 
-// If update is forced
-if (args.update || !fs.existsSync(path.join(args.data, "hashlist.txt"))) {
-    update()
+// If updates are forced or files don't exist
+if (args.update || !fs.existsSync(path.join(args.data, "hashlist.txt")) || !fs.existsSync(path.join(args.data, "lastmodified.txt"))) update()
 
-}
-// If hashlist does exist
-else if (args.update !== false && fs.existsSync(path.join(args.data, "hashlist.txt"))) {
+// If hashlist does exist and updates are not disabled
+else if (args.update !== false && fs.existsSync(path.join(args.data, "hashlist.txt")) && fs.existsSync(path.join(args.data, "lastmodified"))) {
 
     // Check if online
     require("dns").lookup("google.com", (err) => {
         if (err && err.code == "ENOTFOUND") {
             console.log(c.red("You are not connected to the internet!"))
             process.exit(1)
-        } else if (err) {
-            handleError(err)
-        } else {
+        } else if (err) handleError(err)
+        else {
             // If hashlist exists or update not forced
             if (!args.update && fs.existsSync(path.join(args.data, "hashlist.txt"))) {
 
                 // Request the GitHub API rate limit
-                request(requestParams("https://api.github.com/rate_limit", true), (err, _, body) => {
-                    if (err) {
-                        handleError(err)
-                    }
+                githubapi("https://api.github.com/rate_limit", (err, _, body) => {
+                    if (err) handleError(err)
 
                     // Check the quota limit
                     if (body.resources.core.remaining === 0) {
@@ -342,36 +319,29 @@ else if (args.update !== false && fs.existsSync(path.join(args.data, "hashlist.t
                         prepscan()
                     } else {
                         // Check for the latest commit
-                        request(requestParams("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", true), (err, _, body) => {
-                            if (err) {
-                                handleError(err)
-                            }
+                        githubapi("https://api.github.com/repos/Richienb/virusshare-hashes/commits/master", (err, _, {
+                            commit
+                        }) => {
+                            if (err) handleError(err)
 
                             // Get download date of hashlist
-                            const current = dayjs(fs.readFileSync(path.join(args.data, "lastmodified.txt"), "utf8"))
+                            const saved = dayjs(fs.readFileSync(path.join(args.data, "lastmodified.txt"), "utf8"))
 
                             // Get latest commit date of hashlist
-                            const now = dayjs(body.commit.author.date, "YYYY-MM-DDTHH:MM:SSZ")
+                            const latest = dayjs(commit.author.date, "YYYY-MM-DDTHH:MM:SSZ")
 
-                            // Check if current is older than now
-                            if (current.isBefore(now)) {
-                                update()
-                            } else {
+                            // Check if the saved version is older than the latest
+                            if (saved.isBefore(latest)) update()
+                            else {
                                 console.log(c.green("Hash list is up to date"))
                                 prepscan()
                             }
                         })
                     }
                 })
-
-            } else {
-                // If hashlist doesn't exist
-                update()
-
-            }
+            } else update() // If hashlist doesn't exist
         }
     })
-
 } else {
     console.log(c.yellow("Hash list updates disabled"))
     prepscan()

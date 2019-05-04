@@ -20,13 +20,13 @@ Download [here](https://github.com/ros-av/cli/releases).
 #### NPM
 
 ```sh
-npm install -g rosav
+npm install -g @rosav/cli
 ```
 
 #### Yarn
 
 ```sh
-yarn global add rosav
+yarn global add @rosav/cli
 ```
 
 ## Command help
