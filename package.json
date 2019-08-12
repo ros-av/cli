@@ -20,7 +20,7 @@
     "dependencies": {
         "bloomfilter": "^0.0.18",
         "chalk": "^2.4.2",
-        "cli-progress": "^2.1.1",
+        "cli-progress": "^3.0.0",
         "cli-spinner": "^0.2.8",
         "commander": "^3.0.0",
         "dayjs": "^1.8.6",
