@@ -246,9 +246,9 @@ class-utils@^0.3.5:
     static-extend "^0.1.1"
 
 cli-progress@^3.0.0:
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/cli-progress/-/cli-progress-3.3.0.tgz#e05c5080d143f609c1c091d6d0b9aa8c526e9d6f"
-  integrity sha512-t+hem1Ce/usD+v3aI1qJ4vCxYh51nntr6GjQS4ElbNqsSUdvWPbeNHOfFHi4PkyL1wqiC/O6RBoYqnWBlGqhzA==
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/cli-progress/-/cli-progress-3.3.1.tgz#e08fb6853e269c3bc7e0ad8ad0ede59035f5fbce"
+  integrity sha512-cfvv/uuWblzSI6fvpmCNREWxwzI/luelp+P7zoPlguswswWVCfsq334/U6tmh+vusJ7yzbQ3xFni9JNqiF4fAA==
   dependencies:
     colors "^1.1.2"
     string-width "^2.1.1"
