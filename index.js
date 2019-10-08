@@ -1,2 +1,2 @@
-// TODO: Migrate core functions of the CLI over here.
-require("./cli.js")
+require = require("esm")(module)
+module.exports = require("./src/cli")
