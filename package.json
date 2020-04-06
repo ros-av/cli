@@ -27,7 +27,7 @@
         "glob": "^7.1.3",
         "graceful-fs": "^4.1.15",
         "line-by-line": "^0.1.6",
-        "md5-file": "^4.0.0",
+        "md5-file": "^5.0.0",
         "request": "^2.88.0",
         "request-progress": "^3.0.0",
         "temp-dir": "^2.0.0"
