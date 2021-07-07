@@ -1,0 +1,18 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: pkg
+    versions:
+    - 5.0.0
+  - dependency-name: chalk
+    versions:
+    - 4.1.0
+  - dependency-name: commander
+    versions:
+    - 7.0.0
+    - 7.1.0
